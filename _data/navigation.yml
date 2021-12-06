@@ -4,7 +4,7 @@ main:
     url: /categories/
   - title: "태그"
     url: /tags/
-  - title: "검색"
+  - title: Search
     url: /search/
 
 docs:
@@ -14,7 +14,7 @@ docs:
         url: /categories/
       - title: "태그"
         url: /tags/
-       - title: "검색"
+       - title: Search
         url: /search/
   # - title: "About"
   #   url: https://mmistakes.github.io/minimal-mistakes/about/
