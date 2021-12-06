@@ -4,17 +4,17 @@ main:
     url: /categories/
   - title: "태그"
     url: /tags/
-  - title: Search
+  - title: "Search"
     url: /search/
 
 docs:
-  - title: "nav"
+  - title: "네비게이션"
     children: 
       - title: "카테고리"
         url: /categories/
       - title: "태그"
         url: /tags/
-       - title: Search
+       - title: "Search"
         url: /search/
   # - title: "About"
   #   url: https://mmistakes.github.io/minimal-mistakes/about/
