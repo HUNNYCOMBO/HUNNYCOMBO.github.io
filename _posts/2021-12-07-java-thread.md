@@ -1,8 +1,8 @@
 ---
 layout: single
-title:  "String 클래스"
+title:  "Thread"
 categories: java
-tags: [java, string, thread, future, thread pool]
+tags: [java, string, thread]
 toc: true
 author_profile: false
 sidebar:
@@ -130,18 +130,8 @@ start()를 호출하기 전에 setDaemon(true)를 이용하여 설정합니다.
 
 ```java
    ExecutorService es1 = new Exceutors.newcachedTrheadPool();
-   // 초기 스레드 수 : 0, 최대 스래드 수 : int의 최대 값, 코어 스레드 수 : 0 (최소한 유지할 스레드 개수)
-   // 스레드 수 < 작업수 가 되면 스레드를 생성합니다.
-   // 60초동안 추가된 스레드가 작동하지 않으면 제거합니다.
-   ExecutorService es2 = new Executors.newfixedTrheadPool(n);
-   // 초기 스레드 수 : 0, 최대 스레드 수 : 파라미터 값, 코어 스레드 수 : 파라미터 값
-   // 잉여 스레드가 있어도 제거하지 않습니다.
-   ExecutorService es3 = new ThreadPoolExecutor(param1, param2, param3, param4, param5);
-    // param1 : 코어 스레드 개수
-    // param2 : 최대 스레드 개수
-    // param3 : 놀고 있는 시간 단위
-    // param4 : 작업 큐
-
+   // 초기 코어스레드 수 : 0, 최대 스래드 수 : int의 최대        
+   ExecutorService es2 = new Executors.newfixedTrheadPool();
 ```
 
 - 작업 생성 : 하나의 작업단위는 Runnable 혹은 Callable을 구현한 클래스입니다.
@@ -159,37 +149,3 @@ start()를 호출하기 전에 setDaemon(true)를 이용하여 설정합니다.
 - 스레드 풀 종료 : 스레드풀의 스레드는 메인 스레드가 종료되도 실행대기상태 입니다. (재활용)
   
   - shutdown() : 스레드풀의 스레드를 종료시킵니다.
-  
-#### 5-2. Future 객체
- Future 객체는 작업의 결과가 아니라, **지연완료객체**입니다.(값이 설정되지 않은 상태)  
- 작업이 완료될 때까지 Blocking(지연)됐다가, **최종결과**를 얻는데 사용합니다.  
- > 미래에 완료될 것으로 예상되는 객체.
- 현재 진행 스레드가 아닌 다른 스레드에서 값을 전달하여 작업을 수행.
-
-  
-future.get()은 Future 객체에 어떤 값이 설정될 때까지 기다립니다. submit()에 전달된 Callable이 어떤 값을 리턴하면 그 값을 Future에 설정합니다.
-```java
-ExecutorService executor
-        = Executors.newSingleThreadExecutor();
-
-Future<Integer> future = executor.submit(() -> {
-    System.out.println(LocalTime.now() + " Starting runnable");
-    Integer sum = 1 + 1;
-    Thread.sleep(3000);
-    return sum;
-});
-
-System.out.println(LocalTime.now() + " Waiting the task done");
-Integer result = future.get();
-System.out.println(LocalTime.now() + " Result : " + result);
-
-//결과
-01:23:54.929 Doing something
-01:23:54.929 Waiting the task done
-01:23:57.930 Result : 2
-```
-
-  
-[스레드에 더 알아보기](https://coding-factory.tistory.com/279)
-[스레드 풀에 더 알아보기](https://cornswrold.tistory.com/197)
-[Future 객체에 더 알아보기](https://codechacha.com/ko/java-future/)
