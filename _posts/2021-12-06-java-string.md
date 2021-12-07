@@ -7,7 +7,8 @@ toc: true
 author_profile: false
 sidebar:
     nav: "docs"
-search: false
+    toc: true
+search: true
 ---
 
 ## String 클래스
