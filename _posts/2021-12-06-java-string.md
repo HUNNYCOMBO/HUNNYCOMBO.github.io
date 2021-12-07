@@ -31,23 +31,6 @@ String str = "원래 값";
 str = "수정 값";
 ```
 이때 참조변수 str이 참조하는 객체는 **서로 다른 객체**입니다.
-<hr/>
-
-이런 경우도 있습니다.
-```java
-int a = 1;
-int b = 1;
-```
-당연하게도 위의 경우 a와 b는 **서로 다른 객체**를 참조합니다.
-
-반면 string클래스의 경우,
-```java
-String str1 = "Hello World";
-String str2 = "Hello World";
-String str3 = new String("Hello World");
-```
-서로 같은 값을 가졌다면 str1과 str2는 **같은 객체를 참조**합니다.
-하지만 new를 통해 객체를 생성하게 되면 **무조건 새로운 객체**를 생성합니다.
 
 위와같이, 불변객체는 내부 상태를 제공하거나 수정하는 메소드가 없거나 **방어적 복사**를 통해 제공합니다.
 string 클래스의 방어적 복사는 toCharArray메소드가 있습니다.
@@ -61,7 +44,25 @@ public char[] toCharArray(){
 }
 ```
 
-### 3. equals()와 == 비교연산자
+### 3. new 생성자
+
+```java
+int a = 1;
+int b = 1;
+```
+위의 경우 a와 b는 **서로 다른 객체**를 참조합니다.
+
+반면 string클래스의 경우,
+```java
+String str1 = "Hello World";
+String str2 = "Hello World";
+String str3 = new String("Hello World");
+```
+서로 같은 값을 가졌다면 str1과 str2는 **같은 객체를 참조**합니다.
+하지만 new를 통해 객체를 생성하게 되면 **무조건 새로운 객체**를 생성합니다.(다른 객체)
+
+
+### 4. equals()와 == 비교연산자
 두 객체가 같은가를 비교하기 위해서는 == 비교연산자를 이용하여 boolean값을 받아내지만
 앞서본,
 
@@ -75,8 +76,10 @@ System.out.println(str1 == str3);
 위와 같은 경우, 일반적인 생각으로는 **값**이 같기 때문에 세 변수 모두 같다고 보는게 우리가 의도한 생각입니다.
 하지만, 실제로는
 >true
+
 >false
-와 같이 의도한 생각과 다른 결과가 나오게 됩니다.
+
+위와 같이 의도한 생각과 다른 결과가 나오게 됩니다.
 
 == 비교연산자는 주소값(hashcode)을 비교하는 **Call by Reference**이기 때문입니다.
 == 비교연산자는 primitive type(기본형 타입)일 때는 값을 비교하고, reference type(참조형 타입)일 때는 객체의 주소가 같은지 비교합니다.
@@ -92,11 +95,14 @@ System.out.println(str1.eqauls(str2));
 System.out.println(str1.eqauls(str3));
 ```
 >true
+
 >true
+
 위와 같이 equals메소드를 이용하면 의도한 결과가 나오게 됩니다.
 
 eqauls()는 Object클래스의 메소드이므로 모든 객체에서 사용할 수 있습니다.
 재정의 하여 사용하는것이 권장되는데, 이때 hashcode()를 함께 재정의 해야합니다.
 
 > equals로 true라면 반드시 hashcode도 같아야 함.
-반대로 hashcode가 같은 값이어도 equals는 false일 수 있음.
+
+>반대로 hashcode가 같은 값이어도 equals는 false일 수 있음.

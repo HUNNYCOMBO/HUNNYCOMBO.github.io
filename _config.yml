@@ -106,7 +106,7 @@ author:
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
   bio              : "93년생 비전공자입니다."
   location         : "Seoul"
-  email            : "fkrudgns@gmail.com"
+  email            : #"fkrudgns@gmail.com"
   links:
     - label: "Email"
       icon: "fas fa-fw fa-envelope-square"
