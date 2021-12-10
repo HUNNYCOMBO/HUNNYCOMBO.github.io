@@ -1,5 +1,3 @@
-<script src ="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.4/mermaid.min.js"></script>
-<script>mermaid.initialize({startOnLoad:true});</script>
 ---
 layout: single
 title:  "토비의 스프링 vol.1 1장"
@@ -12,6 +10,8 @@ sidebar:
 search: true
 
 ---
+<script src ="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.4/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true});</script>
 
 ## 오브젝트와 의존관계
 
