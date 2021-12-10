@@ -381,15 +381,9 @@ public class UserDaoTest{
 }
 ```
 DaoFactory를 적용한 구조를 그림을 보겠습니다.
-[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAgLS0g7JqU7LKtIC0tPiBCW0Rhb0ZhY3RvcnldXG5CIC0tIOyDneyEsSAtLT4gQ1tVc2VyRGFvXVxuQSAtLeyCrOyaqS0tPiBDXG5DIC0t7IKs7JqpLS0-IERbQ29ubmVjdGlvbk1ha2VyIOq1rO2YhCDtgbTrnpjsiqRdXG5CIC0t7IOd7ISxLS0-IEQiLCJtZXJtYWlkIjp7InRoZW1lIjoiZGVmYXVsdCJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAgLS0g7JqU7LKtIC0tPiBCW0Rhb0ZhY3RvcnldXG5CIC0tIOyDneyEsSAtLT4gQ1tVc2VyRGFvXVxuQSAtLeyCrOyaqS0tPiBDXG5DIC0t7IKs7JqpLS0-IERbQ29ubmVjdGlvbk1ha2VyIOq1rO2YhCDtgbTrnpjsiqRdXG5CIC0t7IOd7ISxLS0-IEQiLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGVmYXVsdFwiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
-```mermaid
-graph LR
-A[client]  -- 요청 --> B[DaoFactory]
-B -- 생성 --> C[UserDao]
-A --사용--> C
-C --사용--> D[ConnectionMaker 구현 클래스]
-B --생성--> D
-```
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAgLS0g7JqU7LKtIC0tPiBCW0Rhb0ZhY3RvcnldXG5CIC0tIOyDneyEsSAtLT4gQ1tVc2VyRGFvXVxuQSAtLeyCrOyaqS0tPiBDXG5DIC0t7IKs7JqpLS0-IERbQ29ubmVjdGlvbk1ha2VyIOq1rO2YhCDtgbTrnpjsiqRdXG5CIC0t7IOd7ISxLS0-IEQiLCJtZXJtYWlkIjp7InRoZW1lIjoiZGFyayJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAgLS0g7JqU7LKtIC0tPiBCW0Rhb0ZhY3RvcnldXG5CIC0tIOyDneyEsSAtLT4gQ1tVc2VyRGFvXVxuQSAtLeyCrOyaqS0tPiBDXG5DIC0t7IKs7JqpLS0-IERbQ29ubmVjdGlvbk1ha2VyIOq1rO2YhCDtgbTrnpjsiqRdXG5CIC0t7IOd7ISxLS0-IEQiLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGFya1wiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
+
 #### 4-2. 오브젝트 팩토리의 활용
 만약 다른 DAO의 생성 기능을 추가한다고 가정했을 때, C.M 구현 클래스의 객체를 생성하는 코드가 메소드마다 반복되게 됩니다.
 ```java
@@ -471,14 +465,7 @@ public class UserDaoTest{
 기존 DaoFactory가 DAO 오브젝트를 생성하고 DB 생성 오브젝트와 관계를 맺어주는 제한적인 역할을 하는 데 반해,
 애플리케이션 컨텍스트는 IOC를 적용해서 관리할 모든 오브젝트에 대한 생성과 관계설정을 담당합니다. 
 그림으로 애플리케이션 컨텍스트가 사용되는 방식을 보겠습니다.
-```mermaid
-graph LR
-A[client] --userDao요청--> B[ApplicationContext.getBean 빈목록 조회]
-B --생성요청--> C[Configuration, Bean 어노테이션]
-C --등록--> B
-C --생성--> D[UserDao]
-A --사용--> D
-```
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAtLXVzZXJEYW_smpTssq0tLT4gQltBcHBsaWNhdGlvbkNvbnRleHQuZ2V0QmVhbiDruYjrqqnroZ0g7KGw7ZqMXVxuQiAtLeyDneyEseyalOyyrS0tPiBDW0NvbmZpZ3VyYXRpb24sIEJlYW4g7Ja064W47YWM7J207IWYXVxuQyAtLeuTseuhnS0tPiBCXG5DIC0t7IOd7ISxLS0-IERbVXNlckRhb11cbkEgLS3sgqzsmqktLT4gRCIsIm1lcm1haWQiOnsidGhlbWUiOiJkYXJrIn0sInVwZGF0ZUVkaXRvciI6ZmFsc2UsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAtLXVzZXJEYW_smpTssq0tLT4gQltBcHBsaWNhdGlvbkNvbnRleHQuZ2V0QmVhbiDruYjrqqnroZ0g7KGw7ZqMXVxuQiAtLeyDneyEseyalOyyrS0tPiBDW0NvbmZpZ3VyYXRpb24sIEJlYW4g7Ja064W47YWM7J207IWYXVxuQyAtLeuTseuhnS0tPiBCXG5DIC0t7IOd7ISxLS0-IERbVXNlckRhb11cbkEgLS3sgqzsmqktLT4gRCIsIm1lcm1haWQiOiJ7XG4gIFwidGhlbWVcIjogXCJkYXJrXCJcbn0iLCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)
 
 어플리케이션 컨텍스트를 사용했을 때 장점
 - 클리언트는 구체적인 팩토리 클래스를 알 필요가 없다.
@@ -569,10 +556,7 @@ public class UserDao{
 
 #### 7-2. 런타임 의존관계 설정
 두 개의 클래스가 의존관계에 있다고 말할 때는 항상 방향성이 있습니다.
-```mermaid
-graph LR
-A[A클래스] --A가 B에 의존--> B[B클래스]
-```
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbQe2BtOuemOyKpF0gLS1B6rCAIELsl5Ag7J2Y7KG0LS0-IEJbQu2BtOuemOyKpF0iLCJtZXJtYWlkIjp7InRoZW1lIjoiZGFyayJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbQe2BtOuemOyKpF0gLS1B6rCAIELsl5Ag7J2Y7KG0LS0-IEJbQu2BtOuemOyKpF0iLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGFya1wiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
 
 의존 한다는 것은 B(의존대상)이 변하면 A에 영향을 미친다는 것입니다.
 대표적으로 A가 B의 메소드를 호출해서 사용하는 경우입니다.
