@@ -1,7 +1,7 @@
 ---
 layout: single
 title:  "토비의 스프링 vol.1 1장"
-categories: 토비의 스프링
+categories: spring
 tags: [spring, 오브젝트와 의존관계]
 toc: true
 author_profile: false
@@ -557,7 +557,7 @@ public class UserDao{
 반면, 만약 기존에 로컬변수(지역변수)로 선언되 값을 리턴하는 User클래스와 Connection클래스를 **인스턴스 변수로 두게되면**, 이 두 클래스는 매번 새로운 값으로 바뀌는 정보를 담기 때문에 심각한 문제가 발생합니다.
 
 #### 6-3. 빈의 스코프
-빈이 관리되는 범위를 빈의 스코프라고 합니다. 스프링 빈의 기본 스코프는 싱글톤입니다.
+빈이 관리되는 범위를 빈의 스코프라고 합니다. 스프링 빈의 기본 스코프는 싱글톤입니다.  
 경우에 따라서 싱글톤 외의 스코프를 가질 수 있습니다.
 - 프로토타입 스코프 : 컨테이너에 빈을 요청할 때 마다 매번 새로운 오브젝트를 돌려줍니다.
 - 요청 스코프 : 웹을 통해 새로운 HTTP요청이 생길 때 마다 생성됩니다.
@@ -572,5 +572,119 @@ public class UserDao{
 
 [![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbQe2BtOuemOyKpF0gLS1B6rCAIELsl5Ag7J2Y7KG0LS0-IEJbQu2BtOuemOyKpF0iLCJtZXJtYWlkIjp7InRoZW1lIjoiZGFyayJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbQe2BtOuemOyKpF0gLS1B6rCAIELsl5Ag7J2Y7KG0LS0-IEJbQu2BtOuemOyKpF0iLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGFya1wiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
 
-의존 한다는 것은 B(의존대상)이 변하면 A에 영향을 미친다는 것입니다.
+의존 한다는 것은 B(의존대상)이 변하면 A에 영향을 미친다는 것입니다.  
 대표적으로 A가 B의 메소드를 호출해서 사용하는 경우입니다.
+
+userDao의 의존관계를 보면, userDao가 ConnectionMaker를 사용함으로 의존하고 있지만, 그 구현 객체인 DConnectionMaker에는 userDao가 영향을 받지 않습니다.  
+이렇게 인터페이스에 대해서만 의존관계를 만들어두면 구현 클래스와는 관계가 느슨해지게되며 **낮은 결합도** 상태가 됩니다.  
+이런 모델링 시점의 코드에서 클래스와 인터페이스를 통해 드러나는 의존관계 말고,  
+런타임 시에 오브젝트 사이에서 만들어지는 실체화 된 의존관계도 있습니다.  
+이를 런타임 의존관계 또는 오브젝트 의존관계라고 합니다.  
+실제 사용대상인 오브젝트를 의존 오브젝트(DConnectionMaker)라고 말합니다.  
+
+
+정리하면 DI란 다음 조건을 충족하는 작업을 말합니다.
+- 코드에는 런타임 시점의 의존관계가 드러나지 않는다.(인터페이스만 의존하고 있습니다.)
+- 런타임 시점의 의존관계는 컨테이너 같은 제3의 존재가 결정합니다.
+- 의존관계는 사용할 오브젝트에 대한 레퍼런스를 외부에서 제공해줌으로써 만들어집니다.
+  
+
+```java
+public class UserDao{
+	private ConnectionMaker cm;
+
+	public UserDao(ConnectionMaker cm){
+		this.cm = cm;
+		// DI컨테이너인 DaoFactory는 자신이 결정한 의존관계를 맺어줄 클래스의 오브젝트(UserDao)를 만들고
+		//이 오브젝트 생성자의 파라미터로 레퍼런스를 전달합니다.
+	}
+}
+```
+
+
+#### 7-3. 의존관계 주입
+스프링에는 스스로 검색을 이용해 의존관계를 맺는 의존관계 검색(dependency lookup)이라고 불리는 것도 있습니다.  
+물론 **이때 어떤 오브젝트를 이용할지는 결정하지 않습니다.**  
+단지, 메소드나 생성자를 통한 주입 대신 스스로 컨테이너에게 요청하는 방법(getBean 메소드)입니다.  
+
+이런 검색방식은 코드안에 오브젝트 팩토리 클래스나 스프링 API가 나타나므로 바람직하진 않지만,  
+의존관계 검색방식을 사용해야 할 때가 있습니다. 바로 main메소드에서는 DI를 이용해 오브젝트를 주입받을 방법이 없기때문입니다.  
+
+DI와 검색의 가장 중요한 차이점은 검색은 자신(UserDao)이 Bean일 필요가 없지만, **DI를 위해서는 자신도 Bean이어야 합니다.**  
+
+#### 7-4. 의존관계 주입의 응용
+- 기능 구현의 교환
+  - 만약, 개발용 로컬DB를 사용하다 실제 운영을 위해 다른 DB로 바꿔야 한다면, DB에 연결된 클래스를 수백가지 DAO에서 모두 수정해야합니다.  하지만 DI를 통해 만들었다면 @Configuration이 붙은 DaoFactory에서 return값만 수정하면됩니다.
+- 부가기능 추가
+  - 새로운 관심사를 추가하려고하면, 새로운 클래스를 만들어 DI를 해주면 됩니다.
+
+
+```java
+public class CountingConnectMaker implements ConnectionMaker{
+	// DB에 연결횟수를 세는 기능을 추가한다고 합시다.
+	// 이 클레스는 직접 내부에서 DB커넥션을 만들지 않습니다.
+	// reacm에 저장된 ConnectionMaker 타입의 오브젝트의 makeConnection()을 호출해서 DAO에게 돌려줍니다.
+	int counter = 0;
+	private CounnectionMaker realcm;
+
+	public CountingConnectionMaker(ConnectionMaker realcm){
+		// CountingConnectionMaker 역시 DI 주입을 받고 있습니다.
+		this.realcm = realcm;
+	}
+	public Connection makeConnection(){
+		this.counter++;
+		return realcm.makeConnection();
+		// DB커넥션을 돌려주게 됩니다.(아마도 DConnectionMaker)
+	}
+
+	public int getCounter(){
+		return this.counter
+	}
+}
+```
+
+이를 토대로 설정정보를 담은 클래스도 만듭니다.
+
+```java
+@Coinfiguration
+public class CountingDaoFactory{
+	@Bean
+	public UserDao userDao(){
+		return new UserDao(cm);
+		// 모든 DAO는 여전히 cm()을 통해 만들어지는 오브젝트를 DI받습니다.
+	}
+	@Bean
+	public ConnectionMaker cm(){
+		return new CountingConnectionMaker(realcm());
+	}
+	@Bean
+	public ConnectionMaker realcm(){
+		return new DConnectionMaker();
+		// 실질적인 DI오브젝트 입니다.
+	}
+}
+```
+
+이후 이 기능을 위한 테스트를 위해 테스트용 클래스에서 cm이라는 빈 이름으로 의존관계 검색(DL)을 합니다.  
+이로써 아래 그림과같은 런타임 의존관계가 만들어집니다.  
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbVXNlckRhb10gLS0-IEJbQ291bnRpbmdDTV0gLS0-IENbRENvbm5lY3Rpb25NYWtlcl0iLCJtZXJtYWlkIjp7InRoZW1lIjoiZGFyayJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbVXNlckRhb10gLS0-IEJbQ291bnRpbmdDTV0gLS0-IENbRENvbm5lY3Rpb25NYWtlcl0iLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGFya1wiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
+
+#### 7-5. 메소드를 이용한 의존관계 주입
+지금까지 생성자를 통한 DI만 사용해왔지만 일반 메소드를 이요한 방법이 더 많이 사용됩니다.  
+- setter를 이용한 주입
+  - 파라미터로 전달된 값을 내부의 인스턴스 변수에 저장합니다. 외부에서 오브젝트내부의 애트리뷰트 값을 변경하는 용도로 주요 사용됩니다.
+- 일반 메소드를 이용한 주입
+  - setter와 다르게 여러개의 파라미터를 가질수 있습니다. 한번에 모든 파라미터를 받아야하는 생성자보다 낫습니다.
+
+```java
+@Bean
+public UserDao userDao(){
+	UserDao userDao = new UserDao();
+	userDao.setConnectionMaker(cm());
+	// 세터 메소드를 이용하여 바꾼 DaoFactory 클래스 입니다.
+	return userDao;
+}
+```
+
+### 8. XML을 이용한 설정
