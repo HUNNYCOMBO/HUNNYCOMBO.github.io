@@ -347,6 +347,142 @@ public class UserDaoTest {
 이렇게 UserDAO는 자신의 관심사인 데이터 접근에 집중 할 수 있게 되었고, DB생성 방법이나 커넥션을 가져오는 방법에 대해서는 영향을 받지 않는 코드가 됐습니다.  
 또한, 상속을 사용했을 때 보다, 인터페이스를 사용했을 때 다른 DAO클래스에서도 ConnectionMaker 인터페이스의 구현 클래스들을 적용할 수 있게 됐습니다.  
 
--- 계속
+#### 3-4. 원칙과 패턴
+- 객체지향 설계원칙(SOLID)
+	- 단일 책임 원칙(SRP, The Single Responsibility Principle)
+	- 개방 폐쇄 원칙(OCP, Open-Closed Principle) : 클래스나 모듈은 확장에는 열려 있어야 하고 변경에는 닫혀 있어야 한다.
+		- UserDAO를 예로 들면, DB 연결 방법에는 UserDAO를 건들이지 않고 확장하는데 열려 있습니다.
+		- 동시에 UserDAO 자체의 핵심 기능(데이터 접근 기능)을 구현한 코드는 이런 변화(확장)에 영향을 받지 않으므로 변경에는 닫혀 있다고 볼 수 있습니다.
+		- 높은 응집도 : 하나의 패키지, 컴포넌트, 모듈, 클래스가 하나의 책임 또는 관심사에 집중되어 있다는 뜻입니다. 변경이 일어날 때 모듈의 많은 부분이 함께 바뀐다면 응집도가 높다고 말할 수 있습니다.
+		- 낮은 결합도 : 책임과 관심사가 다른 오브젝트와는 낮은 결합도. 즉, 느슨한 연결 관계를 유지하는 최소한의 방법만 간접적인 형태로 제공하고, 나머지는 서로 독립적이게 만들어 주는 것입니다. 하나의 변경이 발생할 때 다른 모듈과 객체로 변경에 대한 요구가 전파되지 않는 상태입니다. 앞서보았던 결정의 책임을 UserDAO의 클라이언트(UserDAOTest)로 분리한 덕에 ConnectionMaker의 구현 클래스가 바뀌어도, DAO 클래스의 코드를 수정할 필요가 없게 된 것이 낮은 결합도 입니다.
+		- 전략 패턴(Strategy Pattern) : 자주 사용되는 패턴으로, 자신의 기능 맥락(context)에서, 필요에 따라 변경이 필요한 알고리즘을 인터페이스를 통해 외부로 분리시키고(ConnectionMaker), 이를 구현한 구체적인 알고리즘 클래스를 필요에 따라 바꿔서 사용할 수 있게(DconnectionMaker) 하는 디자인 패턴입니다.
+	- 리스코프  치환 원칙(LSP, The Liskov Substitution Principle)
+	- 인터페이스 분리 원칙(ISP, The Interface Segregation Principle)
+	-  의존관계 역전 원칙(DIP, The Dependency Inversion Principle)
+### 4. 제어의 역전(IoC, Inversion of Control)
+IoC는 개발자가 코드로 제어권을 갖는 것이 아닌 다른 대상이 제어권을 갖는 것을 의미합니다. 스프링의 IoC를 살펴보기 전에, UserDAO 코드를 개선해서 IoC를 살펴보겠습니다.
+UserDAOTest는 원래 목적인 테스트 기능과 어떤 ConnectionMaker 구현 클래스를 사용할지 결정하는 기능까지 갖고 있습니다. 먼저 이것을 분리시킵니다.
+#### 4-1.  오브잭트 팩토리
+분리시킬 기능을 담당할 클래스를 만듭니다. 이클래스의 역할은 **객체의 생성방법을 결정하고 생성된 객체를 돌려주는 것**입니다. 이런 오브젝트를 팩토리라고 부릅니다. 팩토리 역할을 맡을 클래스를 DaoFactory라고 하겠습니다.
+```java
+public class DaoFactory{
+	public UserDao userDao(){
+	ConnectionMaker cm = new DConnectionMaker();
+	// 어떤 구현 클래스를 쓸지 결정합니다.
+	UserDao userDao = new UserDao(cm);
+	return userDao;
+	}
+}
 
+public class UserDaoTest{
+	public static void main(String[] args) throws ClassNotFoundException, SQLException{
+	UserDao dao = new DaoFacory().userDao();
+	// 생략
+	}
+}
+```
+DaoFactory를 적용한 구조를 그림을 보겠습니다.
+```mermaid
+graph LR
+A[client]  -- 요청 --> B[DaoFactory]
+B -- 생성 --> C[UserDao]
+A --사용--> C
+C --사용--> D[ConnectionMaker 구현 클래스]
+B --생성--> D
+```
+#### 4-2. 오브젝트 팩토리의 활용
+만약 다른 DAO의 생성 기능을 추가한다고 가정했을 때, C.M 구현 클래스의 객체를 생성하는 코드가 메소드마다 반복되게 됩니다.
+```java
+public class DaoFactory{
+	public UserDao userDao(){
+		return new UserDao(new DcounnectionMaker());
+	}
+	public AccountDao accountDao(){
+		return new AccountDao(new DconnectionMaker());
+	}
+}
+```
+이런 중복 문제를 해결하려면 역시 분리하는게 가장 좋은 방법입니다.
+```java
+public class DaoFactory{
+	public UserDao userDao(){
+		return new UserDao(counnectionMaker());
+	}
+	public AccountDao accountDao(){
+		return new AccountDao(connectionMaker());
+	}
+	public ConnectionMaker connectionMaker(){
+		return new DConnectionMaker();
+		// 분리해낸 코드
+	}
+}
+```
 
+#### 4-3. 제어권의 이전을 통한 제어관계 역전
+제어의 역전 개념은 이미 폭넓게 적용되어 있습니다. 서블릿을 예로들면, 일반적인 자바 프로그램은 main메소드에서 시작해서 개발자가 쓴 코드에 따라 오브젝트가 생성되고 실행됩니다. 그런데 서블릿은 그 실행을 개발자가 직접 제어할 수 있는 방법은 없습니다. 대신 서블릿에 대한 제어 권한을 가진 컨테이너가 서블릿 클래스의 오브젝트를 만들고 메소드를 호출합니다.
+
+앞서본, 템플릿 메소드 패턴에서도 제어의 역전이라는 개념이 활용됐습니다.
+DaoFacotry는 가장 단순한 수준의 IoC컨테이너라고 불릴 수 있습니다.
+
+> 라이브러리와 프레임워크가 어떻게 다른가?
+> 라이브러리를 사용하는 코드는 애플리케이션이 흐름을 직접 제어합니다.
+> 반면, 프레임워크는 코드가 프레임워크에 의해 사용됩니다.
+
+### 5. 스프링의 IoC
+스프링에는 여러가지 기술이 있지만 핵심을 담당하는 것은 바로 **빈 팩토리(애플리케이션 컨텍스트)**라고 불리는 것입니다.
+이는 우리가 만든 DaoFactory의 역할을 좀 더  일반화 한것이라고 볼 수 있습니다.
+이제, DaoFactory를 스프링에서 사용이 가능하도록 개선해봅니다.
+
+#### 5-1. 오브젝트 팩토리를 이용한 스프링 IoC
+> bean : 스프링이 직접 제어권을 가지고 관계를 부여하고 만드는 오브젝트를 빈 이라고 합니다.
+
+> 빈 팩토리 : 빈의 생성과 제어를 담당하는 IoC 오브젝트를 빈 팩토리 혹은 **어플리케이션 컨텍스트(application context), 스프링 컨테이너**라 부릅니다.
+
+애플리케이션 컨텍스트에는 DaoFactory처럼 코드로 정보가 담겨있진 않지만, 별도로 설정정보를 담고있는 무엇인가를 가져와 이를 활용합니다.
+스프링이 빈 팩토리를 위한 오브젝트 설정을 담당하는 클래스라고 인식 할 수 있도록
+@Configuration이라는 어노테이션을 추가합니다.
+그리고 오브젝트를 만들어 주는 메소드 에는
+@Bean 이라는 어노테이션을 붙여줍니다.
+이 두가지 어노테이션 만으로 애플리케이션 컨텍스트가 사용할 설정정보가 된 것입니다.
+```java
+@Configuration	//애플리케이션 컨텍스트가 사용할 설정정보라는 표시
+public class DaoFactory{
+	@Bean	// 오브젝트 생성을 담당하는 IoC용 메소드라는 표시
+	public UserDao userDao(){
+		//생략
+```
+
+이제 DaoFactory를 설정정보로 사용하는 애플리케이션 컨텍스트를 만듭니다. 
+```java
+public class UserDaoTest{
+	public static void main(String[] args) throws ClaaNotFoundException, SQLException{
+	ApplicationContext context =
+	// 애플리케이션 컨텍스트는 ApplicationContext타입 오브젝트 입니다.
+	new AnnotationConfigApplicationContext(DaoFactory.class);
+	// 생성자 파라미터로 설정정보로 사용할 DaoFactory클래스를 넣어줍니다.
+	UserDao dao = context.getBean("userDao", UserDao.class);
+	// 이제 ApplicationContet의 getBean(빈이름, 리턴타입) 메소드를 이용해 UserDao의 오브젝트를 가져올 수 있습니다.
+	// userDao : @Bean 애노테이션이 붙은 메소드의 이름이 빈 이름이 됩니다.
+	// 생략
+```
+이렇게 첫번째 스프링 애필리케이션을 만들었습니다.
+
+#### 5-2. 애플리케이션 컨텍스트의 동작방식
+기존 DaoFactory가 DAO 오브젝트를 생성하고 DB 생성 오브젝트와 관계를 맺어주는 제한적인 역할을 하는 데 반해,
+애플리케이션 컨텍스트는 IOC를 적용해서 관리할 모든 오브젝트에 대한 생성과 관계설정을 담당합니다. 
+그림으로 애플리케이션 컨텍스트가 사용되는 방식을 보겠습니다.
+```mermaid
+graph LR
+A[client] --userDao요청--> B[ApplicationContext.getBean 빈목록 조회]
+B --생성요청--> C[Configuration, Bean 어노테이션]
+C --등록--> B
+C --생성--> D[UserDao]
+A --사용--> D
+```
+
+어플리케이션 컨텍스트를 사용했을 때 장점
+- 클리언트는 구체적인 팩토리 클래스를 알 필요가 없다.
+	- DaoFactory같은 IoC를 적용한 오브젝트가 계속 추가 될 것인데, 클라이언트가 필요한 오브젝트를 가져오려면 어떤 팩토리클래스를 사용해야 할지 알아야하고, 필요때 마다 팩토리오브젝트를 생성해야하는 번거로움이 있습니다. 애플리케이션 컨텍스트를 사용하면 직접 사용할 필요가 없어집니다.
+-  애플리케이션 컨텍스튼 종합적인 IoC 서비스를 제공합니다. 
+	- 오브젝트가 만들어지는 방식, 시점과 전략, 자동생성, 후처리 등 다양한 기능을 제공합니다.
+- 애플리케이션 컨텍스트는 빈을 검색하는 다양한 방법을 제공한다.
