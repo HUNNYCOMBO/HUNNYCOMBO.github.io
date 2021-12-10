@@ -363,6 +363,7 @@ IoC는 개발자가 코드로 제어권을 갖는 것이 아닌 다른 대상이
 UserDAOTest는 원래 목적인 테스트 기능과 어떤 ConnectionMaker 구현 클래스를 사용할지 결정하는 기능까지 갖고 있습니다. 먼저 이것을 분리시킵니다.
 #### 4-1.  오브잭트 팩토리
 분리시킬 기능을 담당할 클래스를 만듭니다. 이클래스의 역할은 **객체의 생성방법을 결정하고 생성된 객체를 돌려주는 것**입니다. 이런 오브젝트를 팩토리라고 부릅니다. 팩토리 역할을 맡을 클래스를 DaoFactory라고 하겠습니다.
+
 ```java
 public class DaoFactory{
 	public UserDao userDao(){
@@ -380,12 +381,14 @@ public class UserDaoTest{
 	}
 }
 ```
+
 DaoFactory를 적용한 구조를 그림을 보겠습니다.
 
 [![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAgLS0g7JqU7LKtIC0tPiBCW0Rhb0ZhY3RvcnldXG5CIC0tIOyDneyEsSAtLT4gQ1tVc2VyRGFvXVxuQSAtLeyCrOyaqS0tPiBDXG5DIC0t7IKs7JqpLS0-IERbQ29ubmVjdGlvbk1ha2VyIOq1rO2YhCDtgbTrnpjsiqRdXG5CIC0t7IOd7ISxLS0-IEQiLCJtZXJtYWlkIjp7InRoZW1lIjoiZGFyayJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAgLS0g7JqU7LKtIC0tPiBCW0Rhb0ZhY3RvcnldXG5CIC0tIOyDneyEsSAtLT4gQ1tVc2VyRGFvXVxuQSAtLeyCrOyaqS0tPiBDXG5DIC0t7IKs7JqpLS0-IERbQ29ubmVjdGlvbk1ha2VyIOq1rO2YhCDtgbTrnpjsiqRdXG5CIC0t7IOd7ISxLS0-IEQiLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGFya1wiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
 
 #### 4-2. 오브젝트 팩토리의 활용
 만약 다른 DAO의 생성 기능을 추가한다고 가정했을 때, C.M 구현 클래스의 객체를 생성하는 코드가 메소드마다 반복되게 됩니다.
+
 ```java
 public class DaoFactory{
 	public UserDao userDao(){
@@ -396,7 +399,9 @@ public class DaoFactory{
 	}
 }
 ```
+
 이런 중복 문제를 해결하려면 역시 분리하는게 가장 좋은 방법입니다.
+
 ```java
 public class DaoFactory{
 	public UserDao userDao(){
@@ -465,6 +470,7 @@ public class UserDaoTest{
 기존 DaoFactory가 DAO 오브젝트를 생성하고 DB 생성 오브젝트와 관계를 맺어주는 제한적인 역할을 하는 데 반해,
 애플리케이션 컨텍스트는 IOC를 적용해서 관리할 모든 오브젝트에 대한 생성과 관계설정을 담당합니다. 
 그림으로 애플리케이션 컨텍스트가 사용되는 방식을 보겠습니다.
+
 [![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAtLXVzZXJEYW_smpTssq0tLT4gQltBcHBsaWNhdGlvbkNvbnRleHQuZ2V0QmVhbiDruYjrqqnroZ0g7KGw7ZqMXVxuQiAtLeyDneyEseyalOyyrS0tPiBDW0NvbmZpZ3VyYXRpb24sIEJlYW4g7Ja064W47YWM7J207IWYXVxuQyAtLeuTseuhnS0tPiBCXG5DIC0t7IOd7ISxLS0-IERbVXNlckRhb11cbkEgLS3sgqzsmqktLT4gRCIsIm1lcm1haWQiOnsidGhlbWUiOiJkYXJrIn0sInVwZGF0ZUVkaXRvciI6ZmFsc2UsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAtLXVzZXJEYW_smpTssq0tLT4gQltBcHBsaWNhdGlvbkNvbnRleHQuZ2V0QmVhbiDruYjrqqnroZ0g7KGw7ZqMXVxuQiAtLeyDneyEseyalOyyrS0tPiBDW0NvbmZpZ3VyYXRpb24sIEJlYW4g7Ja064W47YWM7J207IWYXVxuQyAtLeuTseuhnS0tPiBCXG5DIC0t7IOd7ISxLS0-IERbVXNlckRhb11cbkEgLS3sgqzsmqktLT4gRCIsIm1lcm1haWQiOiJ7XG4gIFwidGhlbWVcIjogXCJkYXJrXCJcbn0iLCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)
 
 어플리케이션 컨텍스트를 사용했을 때 장점
@@ -494,6 +500,7 @@ public class UserDaoTest{
 스프링은 별다른 설정을 하지 않으면 빈 오브젝트를 모두 싱글톤으로 만듭니다.
 이와같이 싱글톤 패턴으로 관리하는 이유는 스프링이 주로 사용되는 대상이 자바 엔터프라이즈 기술(대표적으로 서블릿)을 사용하는 서버환경이기 때문입니다.
 > 싱글톤 패턴
+
 > 애플리케이션 내에서 주로 하나만 존재하도록 강제하는 패턴입니다. 여러 스레드에서 하나의 오브젝트를 공유해 동시에 사용합니다.
 
 - 싱글톤 패턴 구현하는 방법
@@ -535,8 +542,14 @@ public class UserDao{
 무상태방식으로 클래스를 만드는 경우에는 파라미터나 로컬변수, 리턴값을 이용하여 요청에 대한 정보를 다룹니다. 이와 같은 지역변수들은 매번 새로운 값을 저장할 독립적인 공간이 만들어지기 때문에 여러 스레드가 변수의 값을 덮어쓸 일이 없습니다.
 
 > 인스턴스 변수 : 인스턴스마다 다른 값을 가지고 있어야할 때 사용합니다. 싱글톤 패턴에서는 인스턴스가 하나이기 때문에 주의해야 합니다.
+
+
 > 클래스 변수 : 스태틱변수라고도하며 클래스가 메모리에 올라갈 때 동시에 생성되는 인스턴스들이 공유하는 변수입니다. 인스턴스 생성없이 사용가능 합니다.
+
+
 > 지역 변수 : 메소드 영역에 존재하는 변수입니다. 해당 메소드 내에서만 사용 가능합니다.
+
+
 > 전역 변수 : public이 붙으며 같은 클래스내 어디서든 사용가능합니다.
 
 기존의 UserDao를 살펴보면, 인스턴스 변수로 선언 된 connectionMaker는 읽기 전용 값이기 때문에 인스턴스 필드에 두어도 좋습니다.
@@ -556,6 +569,7 @@ public class UserDao{
 
 #### 7-2. 런타임 의존관계 설정
 두 개의 클래스가 의존관계에 있다고 말할 때는 항상 방향성이 있습니다.
+
 [![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbQe2BtOuemOyKpF0gLS1B6rCAIELsl5Ag7J2Y7KG0LS0-IEJbQu2BtOuemOyKpF0iLCJtZXJtYWlkIjp7InRoZW1lIjoiZGFyayJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbQe2BtOuemOyKpF0gLS1B6rCAIELsl5Ag7J2Y7KG0LS0-IEJbQu2BtOuemOyKpF0iLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGFya1wiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
 
 의존 한다는 것은 B(의존대상)이 변하면 A에 영향을 미친다는 것입니다.
