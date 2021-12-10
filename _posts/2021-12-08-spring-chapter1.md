@@ -10,9 +10,6 @@ sidebar:
 search: true
 
 ---
-<script src ="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.4/mermaid.min.js"></script>
-<script>mermaid.initialize({startOnLoad:true});</script>
-
 ## 오브젝트와 의존관계
 
 ### 1. 초난감 DAO
@@ -384,6 +381,7 @@ public class UserDaoTest{
 }
 ```
 DaoFactory를 적용한 구조를 그림을 보겠습니다.
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAgLS0g7JqU7LKtIC0tPiBCW0Rhb0ZhY3RvcnldXG5CIC0tIOyDneyEsSAtLT4gQ1tVc2VyRGFvXVxuQSAtLeyCrOyaqS0tPiBDXG5DIC0t7IKs7JqpLS0-IERbQ29ubmVjdGlvbk1ha2VyIOq1rO2YhCDtgbTrnpjsiqRdXG5CIC0t7IOd7ISxLS0-IEQiLCJtZXJtYWlkIjp7InRoZW1lIjoiZGVmYXVsdCJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiZ3JhcGggTFJcbkFbY2xpZW50XSAgLS0g7JqU7LKtIC0tPiBCW0Rhb0ZhY3RvcnldXG5CIC0tIOyDneyEsSAtLT4gQ1tVc2VyRGFvXVxuQSAtLeyCrOyaqS0tPiBDXG5DIC0t7IKs7JqpLS0-IERbQ29ubmVjdGlvbk1ha2VyIOq1rO2YhCDtgbTrnpjsiqRdXG5CIC0t7IOd7ISxLS0-IEQiLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGVmYXVsdFwiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
 ```mermaid
 graph LR
 A[client]  -- 요청 --> B[DaoFactory]
