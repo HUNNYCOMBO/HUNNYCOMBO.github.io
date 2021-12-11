@@ -1,8 +1,8 @@
 ---
 layout: single
-title:  "토비의 스프링 vol.1 1장"
+title:  "토비의 스프링 vol.1 2장"
 categories: spring
-tags: [spring, 오브젝트와 의존관계]
+tags: [spring, 테스트]
 toc: true
 author_profile: false
 sidebar:
@@ -99,11 +99,11 @@ main메소드가 제어권을 직접 갖고있기에 한계가 있습니다.
 
 이제 테스트용 main메소드를 Junit으로 전환해봅니다.  
 **JUint역시 제어의 권한을 담당하는 프레임워크입니다.**  
-따라서 main메소드가 필요없습니다.  
 
 새로 만들 테스트 메소드는 JUnit 프레임워크가 요구하는 조건 두가지를 따라야 합니다.
 - 메소드가 public으로 선언
 - 메소드에 @Test 어노테이션을 붙임
+- 리턴값이 void이고 파라미터가 없어야합니다.
 
 그리고 if/else 문장을 JUnit이 제공하는 assertThat()이라는 스태틱 메소드를 이용해 전환합니다.  
 > asserThat(user2.getName(), is(user.getName()));
@@ -149,3 +149,315 @@ public class UserDaoTest {
 만약 asserTaht()의 조건을 만족하지 못하면 테스트는 중단되고 실패를 알려줍니다.  
 
 ### 3. 개발자를 위한 테스팅 프레임워크 JUnit
+스프링 프레임워크 자체도 JUnit 프레임워크를 이용해 테스트를 만들어가며 제작되었고,  
+스프링 테스트 모듈도 JUnit을 이용합니다.  
+
+#### 3-1. JUnit 테스트 실행 방법
+가장 좋은 JUnit 테스트 실행 방법은 자바 IDE에 내장된 JUnit 지원 도구를 사용하는 것입니다.  
+이를 이용하면 JUnitCore를 이용할 때처럼 main메소드를 만들지 않아도 됩니다.  
+대표적으로 이클립스 IDE의 Run As항목에 JUnit Test를 선택하면 테스트가 자동으로 실행됩니다.  
+테스트가 시작되면 테스트 정보를 표시해주는 view가 나타나서 진행상황을 깔끔하게 보여줍니다.  
+또한, 한 번에 여러 테스트 클래스를 동시에 실행할 수도 있습니다.  
+  
+개인별로는 IDE를 이용하면 편리하지만, 여러 개발자가 만든 코드를 통합해서 테스트를 수행해야할 경우에는,  
+서버에서 모든 코드를 가져와 통합하고 빌드한 뒤에 테스트를 수행하는 것이 좋습니다.  
+이떄는 Maven(메이븐)이나 ANT같은 빌드툴 혹은 스크립트를 이용해 결과를 메일 등으로 통보받는 방법을 사용합니다.  
+
+#### 3-2. 테스트 결과의 일관성
+지금까지 테스트를 실행하면서 가장 불편했던 점은, 매번 UserDaoTest 테스트를 실행하기 전에 DB의 User 테이블 데이터를 삭제해줘야 하는 것입니다.  
+같은 코드를 반복해서 테스트가 성공하기도 실패하기도 한다면 좋은 테스트라고 할 수 없습니다.  
+코드에 변경이없다면 테스트는 **동일한 결과를 보장**해야합니다.
+이를 위해선 addAndGet()테스트를 마치면 테스트가 등록한 사용자 정보를 삭제하게 만드는 것입니다.  
+이 기능을 하는 deleteAll()와 이를 검증하기 위한 getCount()를 UserDao에 만듭니다.  
+
+```java
+public void deleteAll() throws SQLException {
+		Connection c = dataSource.getConnection();
+	
+		PreparedStatement ps = c.prepareStatement("delete from users");
+		ps.executeUpdate();
+
+		ps.close();
+		c.close();
+	}	
+
+	public int getCount() throws SQLException  {
+		Connection c = dataSource.getConnection();
+	
+		PreparedStatement ps = c.prepareStatement("select count(*) from users");
+
+		ResultSet rs = ps.executeQuery();
+		rs.next();
+		int count = rs.getInt(1);
+
+		rs.close();
+		ps.close();
+		c.close();
+	
+		return count;
+	}
+```
+
+이 두 메소드에 대한 테스트 역시 만들어야 하지만, 둘다 독립적으로 테스트하기에는 무리가 있습니다.  
+차라리 addAndGet()를 실행 한 뒤 getCount()로 테이블에 남아있는지 확인해 deleteAll()을 테스트하고,  
+add()를 실행 한 뒤 getCount()의 값을 검증해 getCount()에 대한 테스트도 완료합니다.  
+
+```java
+@Test
+public void andAndGet() throws SQLException {
+		ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
+		UserDao dao = context.getBean("userDao", UserDao.class);
+		
+		dao.deleteAll();
+		assertThat(dao.getCount(), is(0));
+		// User 테이블을 비움으로서 0이 리턴되야 합니다.
+		//생략
+		dao.add(user);
+		assertThat(dao.getCount(), is(1));
+		// User를 DB에 추가함으로 1이 리턴되야합니다.
+		//생략
+}
+```
+
+addAndGet()의 검증이 끝날 때 deleteAll()을 실행해주는 방법도 있지만,  
+addAndGet() 테스트 실행 이전에 다른 이유로 USER테이블에 다른 데이터가 들어가있다면,  
+실패하게 됩니다. 그러므로 테스트하기 전에 문제가 되지 않는 상태를 만들어주는게 좋습니다.  
+
+#### 3-3. 포괄적인 테스트
+getCount()에대한 테스트처럼 한 두가지 결과만 검증하고 마는것은 위험합니다.  
+개선한 테스트 메소드의 제작이 필요합니다.  
+편리한 테스트를 위해 User 클래스에 파라미터가 있는 생성자를 만들어 둡니다.
+
+```java
+pulbic User(String id, // 생략){
+	this.id = id;
+	// 생략
+}
+public User(){} // 기본 생성자도 물론 만들어줘야 합니다.
+```
+
+이후, 다음과 같이 테스트를 작성합니다.  
+
+```java
+@Test
+public void count() throws SQLException {
+	// 생략
+		dao.deleteAll();
+		assertThat(dao.getCount(), is(0));
+				
+		dao.add(user1);
+		assertThat(dao.getCount(), is(1));
+		
+		dao.add(user2);
+		assertThat(dao.getCount(), is(2));
+		
+		dao.add(user3);
+		assertThat(dao.getCount(), is(3));
+}
+```
+
+주의할 점은 addAndGet과 count 테스트가 어떤 순서로 실행될지 알 수 없습니다.  
+**이는 테스트의 결과가 테스트의 실행 순서에 영향을 받지 않아야한다는 의미(독립)**입니다.  
+예를 들어, addAndGet()에서 등록한 정보를 count()에서 활용한다면 안됩니다.  
+  
+get()에서도 파라미터로 주어진 id에 해당하는 사용자를 가져온것인지 검증하는 코드가 필요합니다.  
+두 개의 User를 add()하고, 각각의 User의 id를 파라미터로 전달해서 get()을 실행하게 합니다.  
+
+```java
+@Test 
+	public void andAndGet() throws SQLException {
+		ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
+		UserDao dao = context.getBean("userDao", UserDao.class);
+
+		User user1 = new User("gyumee", "박상철", "springno1");
+		User user2 = new User("leegw700", "이길원", "springno2");
+		
+		dao.deleteAll();
+		assertThat(dao.getCount(), is(0));
+	
+		dao.add(user1);
+		dao.add(user2);
+		assertThat(dao.getCount(), is(2));
+		
+		User userget1 = dao.get(user1.getId());
+		assertThat(userget1.getName(), is(user1.getName()));
+		assertThat(userget1.getPassword(), is(user1.getPassword()));
+		// 첫번째 User의 id로 get()을 실행하면 첫 번째 User의 값을 가진
+		// 오브젝트를 돌려주는 지에 대한 테스트 코드입나다.
+
+		User userget2 = dao.get(user2.getId());
+		assertThat(userget2.getName(), is(user2.getName()));
+		assertThat(userget2.getPassword(), is(user2.getPassword()));
+	}
+```
+
+만약 get()에 전달된 id값에 해당하는 사용자 정보가 없다면 어떻게 해야할까요?  
+이런 경우에 결과는 null같은 값을 리턴하게 하거나, 예외를 던지게 하는 방법이 있습니다.  
+스프링이 정의한 데이터 억세스 예외 클래스 들이 있는데, 그 중  
+EpmtyResultDataAccessException 예외를 사용합니다.  
+  
+일반적으로 테스트 중에 예외가 던져지면 테스트가 실패하지만,  
+이번엔 반대로 예외가 발생해야 하는 경우입니다.  
+더군다나 예외 발생 여부는 메소드를 실행해서 리턴 값을 비교하는 방법으로는 확인할 수 없습니다.(asserThat메소드로 불가능합니다.)  
+JUnit은 예외 조건 테스트를 위한 방법을 제공해줍니다.  
+@Test에 expected를 추가하는 것입니다.  
+
+```java
+@Test(expected=EmptyResultDataAccessException.class)
+// 발생하리라 기대하는 예외 클래스를 넣어줍니다.
+	public void getUserFailure() throws SQLException {
+		dao.deleteAll();
+		assertThat(dao.getCount(), is(0));
+		
+		dao.get("unknown_id");
+		// 이 메소드 실행 중에 예외가 발생해야 합니다.
+		// 예외가 발생하지 않으면 테스트 실패입니다.
+	}
+```
+
+하지만, 아직 이 테스트는 실패합니다.  
+쿼리 결과의 첫번째 로우를 가져오는 rs.next()를 실행할 수 없어서  
+SQLException이 발생하기 때문입니다.  
+이제부터 할 일은 이 테스트가 성공하도록 get() 코드를 수정하는 것입니다.
+
+```java
+	public User get(String id) throws SQLException {
+		Connection c = this.dataSource.getConnection();
+		PreparedStatement ps = c
+				.prepareStatement("select * from users where id = ?");
+		ps.setString(1, id);
+		
+		ResultSet rs = ps.executeQuery();
+
+		User user = null;
+		// null 상태로 추가해 둡니다.
+		if (rs.next()) {
+			user = new User();
+			user.setId(rs.getString("id"));
+			user.setName(rs.getString("name"));
+			user.setPassword(rs.getString("password"));
+		}
+		// 쿼리의 결과가 있다면 User 객체를 만들고 값을 넣어줍니다.
+		rs.close();
+		ps.close();
+		c.close();
+		
+		if (user == null) throw new EmptyResultDataAccessException(1);
+		// 결과가 없으면 null상태 그대로입니다. 이를 확인해서 예외를 던져줍니다.
+
+		return user;
+	}
+```
+
+이제 세 개의 테스트가 모두 성공했습니다. 새로 추가한 기능도 정상적으로 작동하고  
+기존의 기능에도 영향을 주지 않았다는 확신을 얻을 수 있습니다.  
+개발자들이 가장 많이 하는 실수는 성공하는 테스트만 골라서 만드는 것입니다.  
+항상 네거티브 테스트를 먼저 만들라는 조언을 잊지 말아야 합니다.  
+
+#### 3-4. 테스트가 이끄는 개발
+우리가 작업한 순서를 잘 생각해보면 테스트를 먼저 만들어 검증을 하고나서(getUserFailure 테스트)  
+UserDao의 코드(get 메소드)에 수정을 했습니다.  
+어떻게보면 테스트할 코드도 안 만들어놓고 테스트 코드부터 만드는 것은 좀 이상하게 보일 수도 있습니다.
+하지만 많은 개발자가 이런 개발 방법을 적극적으로 사용합니다.  
+이는 만들어진 코드를 보고 어떻게 테스트할까라고 생각하면서 테스트 코드를 만든것이 아닌,  
+추가하고 싶은 기능을 코드로 표현하려고 했기 때문에 가능합니다.  
+
+| |단계 |내용 | 코드 |
+|--|--|--|--|
+|조건 |어떤 조건을 가지고 |가져올 사용자 정보가 존재 안 할 경우 |dao.deleteAl(); assertThat(dao.getCount(),is(0));|
+|행위 |무엇을 할 때 |존재하지 않는 id로 get()실행 |get("unknow_id"); |
+|결과 |어떤 결과가 나온다 |특별한 예외가 던져진다 |@Test(expected=EmptyRe...) |
+
+테스트 모드를 먼저 만들고, 테스트를 성공하게 해주는 코드를 작성하는 방식을  
+**TDD(테스트 주도 개발)**이라고 합니다.  
+실패한 테스트를 성공시키기 위한 목적이 아닌 코드는 만들지 않는 것이 원칙입니다.  
+TDD에서는 테스트를 작성하고 이를 성공시키는 코드를 만드는 작업의 주기를 가능한 짧게 하도록 권장합니다.  
+
+#### 3-5. 테스트 코드 개선
+필요하다면 테스트 코드도 언제든지 리팩토링 해 볼 수 있습니다.  
+UserDaoTest 코드를 잘 살펴보면 반복되는 부분이 눈에 띕니다.  
+
+> ApplicationConext context = new GericXml....
+
+물론 중복된 코드는 별도의 메소드로 추출하는 것이 쉬운 방법입니다.  
+하지만 JUnit의 제공하는 기능을 활용해보겠습니다.  
+
+먼저, 세 개의 테스트 메소드에 반복적으로 등장하는 위의 코드를 제거하고 이를 담을 setUp메소드를 만듭니다.  
+아래의 코드를 보며 따라가겠습니다.  
+
+```java
+public class UserDaoTest {
+	private UserDao dao; 
+	// setUp 메소드에 dao 변수가 지역변수로 선언되 있으므로,
+	// dao 변수를 인스턴스 변수로 추가합니다.
+	private User user1;
+	private User user2;
+	private User user3;
+	// 이는 테스트 수행에 필요한 오브젝트로 픽스처(fixture)라고 합니다.
+	
+	@Before
+	// @Test 메소드가 실행되기 전에 먼저 실행되야 하는 메소드를 정의합니다.
+	// 많은 테스트 메소드에 공통적으로 실행될 경우 지정하는게 좋습니다.
+	// 만약 일부에서만 사용한다면 일반적인 메소드 추출 방식을 사용하는게 좋습니다.
+	public void setUp() {
+		ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
+		this.dao = context.getBean("userDao", UserDao.class);
+		
+		this.user1 = new User("gyumee", "111", "springno1");
+		this.user2 = new User("leegw700", "222", "springno2");
+		this.user3 = new User("bumjin", "333", "springno3");
+		// 생략
+	}
+	
+```
+
+JUnit이 하나의 테스트 클래스를 가져와 테스트를 수행하는 방식을 살펴봅니다.
+- 테스트 클레스에서 @Test가 붙은 조건을 만족하는 테스트메소드를 모두 찾는다.
+- 테스트 클래스의 오브젝트를 하나 만든다.
+  - 각 테스트 메소드를 실행 할 때마다 테스트 클래스의 오브젝트를 새로 만듭니다. 테스트 클래스가 두개의 테스트 메소드를 갖고있다면 JUnit은 이 클래스의 오브젝트를 두 번 만듭니다. 이는 독립성을 보장하기 위함입니다.
+- @Befor가 붙은 메소드가 있으면 실행한다.
+- @Test가 붙은 메소드를 하나 호출하고 테스트 결과를 저장한다.
+- @After가 붙은 메소드가 있으면 실행한다.
+- 나머지 테스트 메소드에 대해 2~5번을 반복한다.
+- 모든 테스트의 결과를 종합하여 돌려준다.
+
+### 4. 스프링 테스트 적용
+리팩토링을 마쳤지만 @Befor 메소드가 테스트 메소드 수만큼 반복되기 때문에 자원낭비가 됩니다.  
+테스트는 가능한 독립적으로 매번 새로운 오브젝트를 만들어야하지만 애플리케이션 컨텍스트는  
+초기화되고 나면 내부의 상태가 바뀌는 일이 거의없고, 빈은 싱글톤으로 만들었기 때문에 무상태입니다.  
+따라서 애플리케이션 컨텍스트는 여러 테스트가 공유해서 사용해도 됩니다.  
+
+#### 4-1. 테스트를 위한 애플리케이션 컨텍스트 관리
+스프링은 JUnit을 사용하는 **테스트 컨텍스트 프레임워크**를 제공합니다.  
+간단한 어노테이션 만으로 테스트에서 필요로 하는 애플리케이션 컨텍스트를 만들어서  
+모든 테스트가 공유할 수 있게 합니다.  
+먼저, @Before 메소드에서 애플리케이션 컨텍스트를 생성하는 코드를 제거합니다.  
+그다음 ApplicationContet타입의 인스턴스 변수를 선언하고 @Autowired어노테이션을 붙입니다.  
+
+```java
+// 라이브러리도 추가해야합니다.
+@RunWith(SpringJUnit4ClassRunner.class)
+// 테스트 컨텍스트 프레임워크의 JUnit 확장기능 지정
+@ContextConfiguration(locations="/applicationContext.xml")
+// 테스트 컨텍스트가 자동으로 만들어줄 애플리케이션 컨텍스트의 위치 지정
+public class UserDaoTest {
+	@Autowired
+	// 테스트 오브젝트가 만들어지고 나면 테스트 컨텍스트에 의해 자동으로 DI
+	ApplicationContext context;
+	// 초기화 해주는 코드없이 JUnit확장 기능이 사용합니다.
+	
+	private UserDao dao; 
+	
+	private User user1;
+	private User user2;
+	private User user3;
+	
+	@Before
+	public void setUp() {
+		this.dao = this.context.getBean("userDao", UserDao.class);
+		
+		this.user1 = new User("gyumee", "�ڼ�ö", "springno1");
+		this.user2 = new User("leegw700", "�̱��", "springno2");
+		this.user3 = new User("bumjin", "�ڹ���", "springno3");
+	}
+```
