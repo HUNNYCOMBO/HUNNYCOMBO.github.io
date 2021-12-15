@@ -416,8 +416,9 @@ public class UserDao{
 - 템플릿 : 고정된 작업 흐름을 가진 코드를 재사용
   - 템플릿 메소드패턴을 생각해보면 고정된 로직은 슈퍼클래스에 두고, 바뀌는 부분을 서브클래스의 메소드에 둡니다.
 - 콜백 : 템플릿 안에서 호출되는 것을 목적으로 만들어진 오브젝트
-  - 파라미터로 전달되지만 값을 참조하기 위한 것이 아닌 로직을 담은 메소드를 실행시키기 위해 사용됩니다.(functional object)
+  - 파라미터로 전달되지만 값을 참조하기 위한 것이 아닌 로직을 담은 메소드를 실행(작업 수행)시키기 위해 사용됩니다.(functional object)
   - 보통 단일 메소드 인터페이스(추상형 인터페이스)를 사용합니다.
+  - 다른 오브젝트의 메소드에 전달되는 오브젝트를 말합니다.
 
 일반적인 DI라면 템플릿에 인스턴스 변수를 만들어두고 사용할 의존 오브젝트를 수정자 메소드를 통해 저장해 사용할 것입니다.  
 반면 템플릿/콜백 방식에서는 매번 매소드 단위로 사용할 오브젝트를 새롭게 전달받는게 특징입니다.(메소드레벨에서 일어나는 DI)  
@@ -437,6 +438,7 @@ JDBC의 try/catch문에 적용했던 방법을 UserDao의 메소드에도 적용
 콜백에서 변하는 부분은 SQL문장뿐입니다. 나머지는 변하지 않습니다.  
 
 ```java
+// UserDao 클래스
 public void deleteAll() ....{
     executeSql("delete from users");
 }
@@ -453,3 +455,306 @@ private void executeSql(final String query) throws...{
 ```
 
 SQL을 담은 파라미터를 final로 선언해서 콜백안에서 사용 할 수있게 해주는것만 주의합니다.  
+한단계 더 나아가서, executeSql()은 UserDao만 사용하기는 아깝습니다.  
+이렇게 재사용 가능한 콜백을 담고 있는 메소드라면, DAO가 공유할 수 있는 템플릿(workWithStatementStrategy메소드)의 클래스(JdbcContext) 안으로 옮겨도 좋습니다.  
+메소드 접근자는 public으로 바꿔서 외부에서 바로 접근이 가능하게 합니다.
+
+```java
+public void deleteAll() thorws SQLException {
+    this.jdbcContext.executeSql("delete from users");
+    // 메소드를 템클릿 클래스로 옮김
+    // excuteSQl메소드(클라이언트)가 파라미터로 템플릿을 호출하고,
+    // 템플릿(workWith...)이 콜백을 호출하고 파라미터로 정보를 넘깁니다.
+    // 콜백이 최종적으로 클라이언트에게 리턴합니다.
+}
+```
+
+일반적으로 성격이 다른 코드들은 가능한 분리시키지만, 이 경우에는 응집력이 강한 코드들이기 떄문에 한 군데 모여있는게 유리합니다.  
+
+#### 5-3. 템플릿/콜백의 응용
+스프링에는 다양한 자바 엔터프라이즈 기술에 사용할 수 있도록 미리 만들어 제공되는 수십가지 템플릿/콜백 클래스와 API가 있습니다.  
+이 기능을 잘 사용하려면 직접 만들어서 사용할 줄도 알아야합니다. 원리도 모른채 기계적으로 사용하는 경우와 이해하고 사용하는 경우에는 큰 차이가 있습니다.  
+
+고정된 작업 흐름을 갖고 있으면서 여기저기서 반복되는 코드가 있따면, 중복되는 코드를 분리할 방법을 생각해보는 습관을 기릅니다.
+1. 중복된 코드를 먼저 메소드로 분리해봅니다.
+2. 일부 작업을 필요에 따라 바꾸어 사용해야 한다면 인터페이스를 사이에 두고 분리해서 DI로 관리하도록 만듭니다.
+3. 바뀌는 부분이 한 애플리케이션 안에서, 여러 종류가 동시에 만들어질 수 있다면, 템플릿/콜백 패턴을 적용하는 것을 고려합니다.
+
+
+우리는 템플릿/콜백 패턴에 익숙해지도록 예제를 하나 만들어 보겠습니다.  
+예제는 파일을 하나 열어서 모든 라인의 숫자를 더한 합을 돌려주는 코드입니다.  
+다음과 같이 4개의 숫자를 담고 있는 numbers.txt파일을 하나 준비합니다.
+
+```txt
+1
+2
+3
+4
+```
+모든 라인의 숫자 합은 10이고, numbers.txt 파일 경로를 주면 10을 돌려주도록 만들면 됩니다.  
+그리고 연 파일은 잊지말고 try/catch 블록으로 닫아줍니다.
+이를 아래와 같은 테스트로 만들 수 있습니다.
+
+```java
+public class CalcSumTest{
+    @Test
+    public void sumOfNumbers() thorws IOException{
+        Calculator c = new Calculator();
+        int sum = c.calcSum(getClass().getResource("numbers.txt").getPath());
+        // 파라미터의 스트링으로 경로값을 받습니다.
+        assertThat(sum,is(10));
+        // 합이 10이면 통과
+    }
+}
+
+//이하 Calculator 클래스 구현
+public class Calculator{
+    public Integer calcSum(String filepath) thorws IOException{
+        BufferedReader br = null;
+
+        try{
+            br = new BufferdReader(new FileReader(filepath));
+            // 한줄씩 읽기위해 bufferedreader로 파일을 가져옵니다.
+            Integer sum = 0;
+            String line = null
+            while((line = br.readLine()) != null){
+                // 한줄씩읽어들이며 읽을 값이 없을때 까지 반복합니다.
+                sum += Integer.valueOf(line);
+                // 스트링값을 integet타입으로 바꾸어 연산합니다.
+            }
+
+            br.close();
+            //한 번 연 파일은 반드시 닫아줍니다.
+            return sum;
+        }catch(IOException e){
+            throw e;
+        }finally{
+            if(br != null){ // 오브젝트 생성 전 예외가 발생할 수도 있으므로 체크해줍니다.
+                try{br.close();}
+                catch(IOException e){}
+            }
+        }
+    }
+}
+```
+
+만약 이번에는 모든 숫자의 곱을 계산하는 기능을 추가해야한다는 요구가 발생한다면,  
+비슷한 기능이 새로 필요할 때마다 복사해서 사용할 수는 없습니다.  
+템플릿/콜백 패턴을 적용해서 해결해봅시다. 먼저 템플릿에 담을 반복되는 작업(변하지 않는)이 어떤 것인지 살펴봅니다.  
+**템플릿이 콜백에게 전달해줄 내분의 정보는 무엇이고, 콜백이 템플릿에게 돌려줄 내용은 무엇인지 생각해봅니다.**  
+
+> 템플릿이 파일을 열고 각 라인을 읽는 br을 만들어서 콜백에게 전달하고, 콜백이 연산을 처리한 후 템플릿에게 돌려주게 합니다.
+
+이것을 콜백 인터페이스의 메소드로 표현해봅시다.
+```java
+public interface BrCallback{
+    Integer doMath(BufferedReader br) thorws IOException;
+    // 콜백의 추상 메소드 입니다.
+}
+```
+
+이제 템플릿 부분을 메소드로 분리해봅니다.  
+콜백 인터페이스타입의 오브젝트를 받아서 실행하고 받은 결과를 클라이언트에게 돌려주게 합니다.  
+
+```java
+public class Calculator{
+    public Integer fileReadTemplate(String filepath, BrCallback callback) thorws IOException{
+        BufferedReader br = null;
+
+        try{
+            br = new BufferdReader(new FileReader(filepath));
+            int ret = callback.doMath(br);
+            // 콜백 오브젝트를 호출하는 부분입니다.
+            // 템플릿에서 만든 컨텍스트 정보인 br을 전달해주고 콜백의 작업 결과를 받아둡니다.
+            return ret;
+        }catch(IOException e){
+            throw e;
+        }finally{
+            if(br != null){ // 오브젝트 생성 전 예외가 발생할 수도 있으므로 체크해줍니다.
+                try{br.close();}
+                catch(IOException e){}
+            }
+        }
+    }
+}
+```
+
+이제 템플릿을 사용하도록 calcSum메소드를 수정해 보겠습니다. 템플릿으로 분리한 나머지 부분을 콜백 인터페이스 익명 내부 클래스에 담습니다.  
+
+> 클라이언트가 calcsum()을 호출하면 반복되는 기능(br 생성, 닫기)을 분리한 템플릿을 호출하고, 템플릿에서 익명 내부 클래스로 만들어진 콜백에게 br을 전달해주고, 콜백이 작업을 처리하고 템플릿에게 건내며, 템플릿이 최종적으로 클라이언트에게 돌려줍니다.
+
+```java
+public class Calculator{
+    public Integer calcSum(String filepath) thorws IOException{
+        BrCallBack sumCallback = (br) -> {
+            // 람다식을 이용하여 간략하게 표현했습니다.
+            // sumcallback은 br을 이용하여 만들어진 콜백 익명 내부클래스(작업 처리 결과) 입니다.
+            // !!! br은 템플릿이 호출했을 당시 콜백에게 넘겨주는 오브젝트입니다.
+            Integer sum = 0;
+            String line = null
+            while((line = br.readLine()) != null){
+                sum += Integer.valueOf(line);
+                }
+            return sum;
+            };
+
+        return fileReadTemplate(filepath, sumCallback);
+        // 경로와 콜백을 템플릿에게 전달합니다.
+        // 이 메소드의 return 값은 integer 입니다.
+    }
+
+    // 곱을 구하는 메소드
+    public Integer calcMul(String filepath) thorws IOException{
+        BrCallBack mulCallback = (br) -> {
+            Integer mul = 1;
+            String line = null
+            while((line = br.readLine()) != null){
+                mul *= Integer.valueOf(line);
+                }
+            return mul;
+            };
+
+        return fileReadTemplate(filepath, sumCallback);
+    }
+}
+```
+
+이제 테스트도 수정합니다. 테스트 메소드가 두개가 되고, 사용할 오브젝트와 파일 이름이 공유됩니다. @Befor를 이용하여 픽스처로 만들어둡니다.  
+
+```java
+public class CalcSumTest{
+    Calculator c;
+    String filepath;
+
+    @Before
+    public void setUp(){
+        this.c = new Calculator();
+        this.filepath = getClass().getResource("numbers.txt").getPath();
+    }
+
+    @Test
+    public void sumOfNumbers() thorws IOException{
+        assertThat(c.calcSum(this.filepath),is(10));
+    }
+
+    @Test
+    public void mulOfNumbers() thorws IOException{
+        assertThat(c.calcMul(this.filepath),is(24));
+    }
+```
+
+이렇게 try/catch문이 로직에 없이 파일을 안전하기 처리하는 코드를 재사용 할 수 있게 됐습니다.  
+그런데 우리는 calcSum()와 calcMul()에서 다시 반복되는 코드를 발견할 수 있습니다. 바로 while문 입니다.  
+바뀌는 코드(콜백)는 반복문의 본문 입니다.(sum += , mul *=) 본문으로 전달한 정보는 처음에 선언한 변수 값이고, 리턴하는 것은 계산한 결과입니다.(변하지 않음, 템플릿)  
+이를 새로운 콜백 인터페이스로 정의해봅니다.  
+
+```java
+public interface LineCallback{
+    Integer doRead(String line, Integer value);
+}
+
+/// linecallback을 사용하는 템플릿
+public class Calculator{
+    public Integer lineReadTemplate(String filepath, LineCallback callback, int initVal) thorws IOException{
+        // initval : 변수의 초기값
+        BuffredRead br = null;
+        try{
+            br = new BuffereadReader(new FileReader(filepath));
+            Integer res = initVal;
+            String line = null;
+            while((line = br.readLine()) != null){ //루프까지 템플릿이 맡습니다. 콜백을 여러번 호출합니다.
+                res = callback.doRead(line,res);    //계산을 콜백이 맡습니다. 다음 라인에 사용하기위해 참조변수를 둡니다.
+                }
+            return res;
+        }catch..... //br을 닫아주는 코드도 정의해 줍니다.
+}
+```
+
+이제 fileReadTemplate()를 사용하는 메소드들을 lineReadTemplate()를 사용하도록 바꿔봅니다.  
+
+```java
+public class Calculator{
+    public Integer calcSum(String filepath) thorws IOException{
+        LineCallBack sumCallback = (line, value) -> {
+            return value + Integer.valueOf(line);
+            // value 는 템플릿에게 받은 누적된 계산 값입니다.
+            };
+
+        return lineReadTemplate(filepath, sumCallback, 0);
+        // 템플릿을 호출하면 템플릿이 txt를 담은 br을 가져오고 한 줄씩 읽어들이며,
+        // 계산된 값과 한 줄을 콜백에게 넘겨 끝날때 까지 작업을 수행하게 합니다.
+    }
+
+    // 곱을 구하는 메소드
+    public Integer calcMul(String filepath) thorws IOException{
+        LineCallBack mulCallback = (line, value) -> {
+            return value * Integer.valueOf(line);
+            // 연산이 달라졌습니다.
+            };
+
+        return fileReadTemplate(filepath, sumCallback, 1);
+    }
+}
+```
+
+이렇게 파일처리 코드가 템플릿으로 분리되고 순수한 계산 로직만남아 코드가 깔끔해졌습니다.  
+Calculator 클래스와 메소드는 계산한다는 핵심 기능 코드만 갖고있습니다.  
+
+여기서 더 강력한 템플릿/콜백 구조를 생각해봅시다. 만약 줄마다 있는 문자를 모두 연결해서 하나의 스트링으로 돌려주는 기능을 만든다면,  
+템플릿이 리턴하는 타입이 스트링이어야 하고, 콜백의 결과도 스트링이어야하고, 호출하는 메소드도 스트링 타입이어야 합니다.  
+하지만 지금은 Integer타입으로 고정되있습니다. 만약 결과 타입을 다양하게 가져가고싶다면 타입 파라미터라는 개념을 도입한  
+**Generics(제네릭스)를 이용하면 됩니다. 제네릭스를 이용하면 다양한 오브젝트 타입을 지원하는 인터페이스나 메소드를 정의할 수 있습니다.**  
+
+기존에 만들었던 Integer타입의 결과만 다루는 콜백과 템플릿을 확장해 보겠습니다.  
+먼저, 콜백 메소드의 리턴 값과 파라미터 값의 타입을 제네릭 타입 파라미터 T로 선언합니다.  
+그리고 템플릿 메소드에도 콜백의 타입 파라미터와 동일하게 결과 값 타입, initVal의 타입을 설정합니다.  
+
+```java
+public interface LineCallback<T>{
+    // 타입 파라미터 T를 갖는 인터페이스
+    T doRead(String line, T value);
+    // T 타입 파라미터입니다.
+}
+
+// 템플릿
+public class Calculator{
+    public Integer lineReadTemplate(String filepath, LineCallback<T> callback, T initVal) thorws IOException{
+        // initval : 변수의 초기값
+        BuffredRead br = null;
+        try{
+            br = new BuffereadReader(new FileReader(filepath));
+            T res = initVal;
+            String line = null;
+            while((line = br.readLine()) != null){
+                res = callback.doRead(line,res);
+                }
+            return res;
+        }catch.....
+}
+```
+
+이제 콜백과 템플릿은 파일의 라인을 처리해서 T 타입의 결과를 만들어내는 범용적인 템플릿/콜백이 됐습니다.  
+이제 파일의 모든 라인의 내용을 하나의 문자열로 연결하는 메소드를 추가해 봅니다. 추가적으로 테스트와 기존의 메소드도 변경합니다.  
+
+```java
+public Stirng concatenate(Stirng filepath) throws IOException{
+    LineCallback<String> conCallback = (line, value) -> {
+        return value + line;
+    };
+
+    return lineReadTemplate(filepath, conCallback, "");
+    // conCallback템플릿 메소드의 T는 모두 스트링이 됩니다.
+}
+
+@Test
+publci void conStrings() thorws IOException{
+    asserThat(calculator.concatenate(this.filepath), is("1234"));
+}
+
+// calSum, Mul 메소드들은 다음과 같이 수정하면 그대로 사용가능 합니다.
+LineCallback<Integer> sumCallback = () -> {};
+```
+
+이런 제네릭스 타입을 갖는 메소드나 콜백 인터페이스 등의 기법은 종종 사용되고 있습니다.  
+
+### 6. 스프링의 JdbcTemplate
