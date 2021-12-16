@@ -471,7 +471,7 @@ public void deleteAll() thorws SQLException {
 
 일반적으로 성격이 다른 코드들은 가능한 분리시키지만, 이 경우에는 응집력이 강한 코드들이기 떄문에 한 군데 모여있는게 유리합니다.  
 
-#### 5-3. 템플릿/콜백의 응용
+#### 5-3. 템플릿/콜백의 응용 (이 문단은 흐름을 끊으므로 3장을 모두 읽은 후 보세요.)
 스프링에는 다양한 자바 엔터프라이즈 기술에 사용할 수 있도록 미리 만들어 제공되는 수십가지 템플릿/콜백 클래스와 API가 있습니다.  
 이 기능을 잘 사용하려면 직접 만들어서 사용할 줄도 알아야합니다. 원리도 모른채 기계적으로 사용하는 경우와 이해하고 사용하는 경우에는 큰 차이가 있습니다.  
 
@@ -758,3 +758,306 @@ LineCallback<Integer> sumCallback = () -> {};
 이런 제네릭스 타입을 갖는 메소드나 콜백 인터페이스 등의 기법은 종종 사용되고 있습니다.  
 
 ### 6. 스프링의 JdbcTemplate
+스프링이 제공하는 JDBC 코드용 기본 템플릿은 JdbcTemplate입니다. 우리가 만든 JdbcContext와 유사하지만 더 강한 기능을 갖고 있습니다.  
+이제 코드를 JdbcTemplate으로 변경해봅니다. 생성자의 파라미터로 DataSource를 주입하면 됩니다.  
+
+```java
+public class UserDao{
+    ...
+    private JdbcTemplate jdbcTemplate;
+    private DataSource dataSource;
+
+    public void setDataSource(DataSource dataSource){
+        this.jdbcTemplate = new JdbcTemplate(datasource);
+        this.dataSource = dataSource;
+        // 기존에는 jdbcContext 에 ds를 주입해 사용했었습니다.
+    }
+}
+```
+
+이제 템플릿을 사용할 준비가 됐습니다.  
+
+#### 6-1. update()
+deleteAll 메소드에 먼저 적용해봅니다. 
+| | 인터페이스| 메소드| 콜백을 받아서 사용하는 템플릿 메소드|
+|--|--|--|--|
+|JdbcContext의 콜백 | StatementStrategy| makePreparedStatement()| executeSql()|
+|JdbcTemplate의 콜백 | PreparedStatementCreator| createPreparedStatement()| update()|
+
+다음과 같이 대응 합니다. 템플릿으로부터 Connection을 제공받아서 PreparedStatement를 만들어 돌려준다는 기능은 동일합니다.  
+
+```java
+public class UserDao {
+	public void deleteAll() throws SQLException {
+		this.jdbcTemplate.update("delete from users");
+        // 이렇게 파라미터로 sql문장을 전달하면 미리 준비된 콜백을 만들어서 템플릿을 호출합니다.
+        // 기존의 방식대로 update()의 파라미터로 PreparedStatementCreator의 추상 메소드를 이용하여 익명 내부 클래스를 사용하는 방법도 가능합니다.
+    }
+}
+```
+
+다음은 add() 입니다. 기존 add메소드는 SQL로 PreparedStatement를 만들고, 제공하는 파라미터를 순서대로 바인딩해서 사용했었습니다.  
+JdbcTemlate에서 제공하는 메소드로 바꿔보면, 조금더 깔끔한 코드로 수정할 수 있습니다.
+```java
+// 기존의 add
+PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values(?,?,?)");
+ps.setString(1, user.getId());
+ps.setString(2, user.getName());
+ps.setString(3, user.getPassword());
+
+// JdbcTemplate의 update 메소드
+	this.jdbcTemplate.update("insert into users(id, name, password) values(?,?,?)",
+						user.getId(), user.getName(), user.getPassword());
+```
+
+#### 6-2. queryForInt()
+다음은 템플릿/콜백 방식을 적용하지 않았던 getCount()에 적용해 봅니다.  
+getCount()는 쿼리를 실행하고 ResultSet을 통해 결과 값을 가져오는 코드입니다. 이때 사용할 콜백은 두가지 입니다.
+
+- PreparedStatementCreator : 앞서 본 udate()의 용도와 같습니다. Connecton을 템플릿으로 부터 받아서 ps를 돌려줍니다.
+- ResultSetExtractor : ps의 쿼리를 실행해서 얻은 ResultSet을 전달 받는 콜백입니다. ResultSet은 템플릿으로부터 받습니다. 추출 할 수 있는 타입은 다양하기에 제너릭스 타입 파라미터를 갖습니다.
+
+템플릿은 이 두 콜백을 파라미터로 받는 query() 입니다.
+```java
+public int getCount() throws SQLException  {
+		return this.jdbcTemplate.query(
+            new PreparedStatementCreator(){ // 첫번째 파라미터
+                public PreparedStatement createPreparedStatement(Connection con) thorws SQLException{
+                    return con.preparedStatement("select count(*) from users");
+                }
+            }, new ResultSetExtractor<Integer>(){ // 두번쨰 파라미터, 제너릭으로 선언한 타입으로 query()의 리턴 타입도 바뀝니다.
+                public Integer extractData(ResultSet rs) thorws SQLException, DataAccessException{
+                    rs.next();
+                    return rs.getInt(1);
+                }
+            }
+        );
+	}
+```
+
+익명 내부 클래스가 두번이나 등장해서 복잡해보입니다. JDbcTemplate은 **이런 기능을 가진 콜백을 내장**한 queryForInt()를 제공합니다.  
+INteger 타입의 결과를 가져올 수 있는 SQL문장을 파라미터로 전달해주면 됩니다.
+
+```java
+public int getCount(){
+    return this.jdbcTemplate.queryForInt("select count(*) from users");
+}
+```
+
+#### 6-3. queryForObject()
+이번에는 get()에 JdbcTemplate를 적용해 봅니다. get()은 getCount()처럼 단순한 값이 아니라  
+복잡한 User 오브젝트를 ResultSet으로 만들어 프로퍼티에 넣어줘야 합니다.  
+이를 위해, ResultSetExtractor 콜백 대신 RowMapper 콜백을 사용합니다.
+
+> ResultSetExtractor vs RowMapper : 템플릿으로부터 ResultSet을 전달받고 결과를 리턴하는 것은 RSExtractor와 같으나, RSExtractor는 ResultSet을 한번만 전달받아 작업을 모두 진행하고 최종 결과만 리턴해주는데 반해, RomwMapper는 ResultSet의 로우 하나를 매핑하기 위해 사용돼 여러번 호출 될 수 있습니다.
+
+get()의 SQL실행결과는 로우가 하나인 ResultSet입니다. ResultSet의 첫번째 로우에 RowMapper를 적용하도록 만듭니다.  
+RomwMapper 콜백은 로우에 담긴 정보를 하나의 User 오브젝트에 매핑하게 합니다.  
+사용할 템플릿은 queryForObject()입니다. 첫번째 파라미터는 ps를 만들기 위한 sql이고, 두번째는 바인딩할 값입니다.  
+
+```java
+public User get(String id){
+    return this.jdbcTemplate.queryForObject("select * from users where id = ?", //첫번째 파라미터
+        new Object[] {id},  // 두번째 파라미터. 바인딩 할 값입니다. 가변인자 대신 배열을 사용합니다.
+        new RowMapper<User>() { // 세번째 파라미터. 로우를 User 오브젝트에 매핑합니다.
+            public User mapRow(ResultSet rs, int rowNum) thorws SQLException{
+                User user = new User();
+                user.setId(rs.getString("id"));
+                ...
+                return user;
+            }
+        }
+    );
+}
+```
+
+> 가변인자 : 오버로딩(같은 메소드명으로 다른 파라미터를 갖는 것)으로 쓸 매개변수의 개수가 사용자의 쓰임에 따라 달라질 떄 오버로딩 대신 사용합니다. 대표적으로 printf()가 있습니다, 앞의 문자열을 뒤의 % 지시자로 값을 형식화 해주는 메소드인데, 뒤의 파라미터가 Object... args로 선언되어 있기에 뒤의 값의 수를 사용자가 마음대로 정할 수 있습니다. 파라미터를 컴파일러가 구분할 수 없으므로 오버로딩할 수 없습니다. 가변인자는 내부적으로 배열을 생성해서 사용합니다. 가변인자 외에 다른 매개변수가 더 있다면 가변인자는 마지막에만 선언할 수 있습니다.
+
+두번째 파라미터는 뒤에 다른 파라미터가 있기 때문에 가변인자를 사용 할 수 없습니다. 대신 Object타입 배열을 사용합니다.  
+이 배열 초기화 블록을 사용해서 첫번쨰 파라미터의 ?에 바인딩할 id값을 전달합니다.  
+queryForObject()템플릿에서 이 두가지 파라미터를 사용하는 ps 콜백이 만들어집니다.  
+
+기본적으로 queryForObeject()는 한 개의 로우를 얻을 것이라 기대하기 때문에, 내부적으로 rs.next()를 실행시켜서 첫 번째 로우로 이동시킨 후, rs를 전달해 RowMapper 콜백을 호출 합니다.  
+그래서 rs.next를 호출할 필요가 없습니다. 그런데 기존의 예외처리 코드가 없습니다.  
+queryForObject()는 받은 로우의 개수가 하나가 아니라면 예외를 던지도록 만들어 졌습니다.
+
+#### 6-4. query()
+현재 등록되어 있는 모든 사용자 정보를 가져오는 메소드를 만들어 봅니다.  
+여러개의 User 오브젝트를 담기위해선 List<User>를 사용하면 됩니다.  
+순서는 기본키인 id 순으로 정렬해서 가져오도록 합니다. 테스트를 먼저 만들어 봅니다.
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations="/test-applicationContext.xml")
+@DirtiesContext
+public class UserDaoTest {
+	@Autowired
+	ApplicationContext context;
+	
+	private UserDao dao; 
+	
+	private User user1;
+	private User user2;
+	private User user3;
+	
+	@Before
+	public void setUp() {
+		this.dao = this.context.getBean("userDao", UserDao.class);
+		
+		this.user1 = new User("gyumee", "name1", "springno1");
+		this.user2 = new User("leegw700", "name2", "springno2");
+		this.user3 = new User("bumjin", "name3", "springno3");
+        // 테스트를 위한 픽스처
+	}
+    @Test
+	public void getAll()  {
+        // 테스트 메소드
+		dao.deleteAll();
+        // 테스트 전 비워두기
+		
+		dao.add(user1); // Id: gyumee
+		List<User> users1 = dao.getAll();
+        // List 타입으로 돌려받아야 합니다.
+		assertThat(users1.size(), is(1));
+        // 크기 확인
+		checkSameUser(user1, users1.get(0));
+        // 픽스처의 user1과 list에 첫번째로 담은 오브젝트를 비교합니다.
+		
+		dao.add(user2); // Id: leegw700
+		List<User> users2 = dao.getAll();
+		assertThat(users2.size(), is(2));
+		checkSameUser(user1, users2.get(0));  
+		checkSameUser(user2, users2.get(1));
+		
+		dao.add(user3); // Id: bumjin
+		List<User> users3 = dao.getAll();
+		assertThat(users3.size(), is(3));
+        //id 순서대로 객체가 들어갔는지 확인하는 코드
+        // id 순이므로 3, 1, 2 순이어야 합니다.
+		checkSameUser(user3, users3.get(0));  
+		checkSameUser(user1, users3.get(1));  
+		checkSameUser(user2, users3.get(2));  
+	}
+
+	private void checkSameUser(User user1, User user2) {
+        // 동일성이 아닌 동등성으로 비교합니다.
+        // 반복되는 코드는 메스드로 분리합니다.
+		assertThat(user1.getId(), is(user2.getId()));
+		assertThat(user1.getName(), is(user2.getName()));
+		assertThat(user1.getPassword(), is(user2.getPassword()));
+	}
+}
+```
+
+이제 테스트를 성공시키는 getAll()를 작성합니다. queryForObject()는 결과가 로우 하나일 때 사용하고, query()는 여러 개의 로우가 결과로 나오는 일반적인 경우에 사용합니다. 리턴 타입은 List<T> 입니다. 타입은 파라미터로 넘기는 RowMapper<T>로 결정됩니다.  
+
+```java
+public List<User> getAll(){
+    return this.jdbcTemplate.query("select * from users order by id",
+        new RowMapper<User>(){
+            public User mapRow(ResultSet rs, int rowNum) throws SQLException{
+                User user = new User();
+                user.setId(rs.getString("id"));
+                ...
+                return user;
+            }
+        }
+        );
+}
+```
+
+queryForObject()와 마찬가지로 바인딩할 파라미터가 있다면, 두번째 파라미터에 추가할 수 있습니다. RowMapper는 여러번 호출 될 수 있으므로 여러 개의 로우를 가져옵니다.  
+
+그런데 우리는 테스트에서 get()에서 id가 없을 때 어떻게 되는지처럼,
+getAll()에서 네거티브 테스트를 진행하지 않았습니다. 바로, 결과가 하나도 없는 경우입니다.  
+기본적으로 query()는 오류를 던지지않고 크기가 0인 List<>를 돌려줍니다.  
+테스트 코드에서도 이를 그대로 반영하도록 합니다.
+
+```java
+dao.deleteAll();
+
+List<User> user0 = dao.getAll();
+assertThat(user0.size(), is(0))'
+```
+
+이미 0을 리턴하는데 검증 코드를 추가하는 이유는 UserDao를 사용하는 쪽의 입장에서 getAll()이 JdbcTempalte를 사용하는지 직접만든 코드를 사용하는지 모르기 떄문입니다.  
+또 JdbcTemplate를 사용하더라도 getAll()가 다른 결과를 리턴하게 할 수도 있기 떄문입니다.  
+
+#### 6-5. 재사용 가능한 콜백의 분리
+이제 최종적으로 마무리 해봅니다.
+1. DataSource 인스턴스 변수는 필요없어졌으므로 제거합니다. 모든 메소드가 JdbcTempalte를 생성하면서 DataSource를 DI를 받으니 직접 사용할 일이 없습니다.
+2. RowMapper가 2번 중복되므로 분리합니다. 앞으로 다양한 조건으로 사용자를 조회하는 검색 기능이 추가될 것이므로 RomwMapper의 사용은 앞으로도 계속 될것입니다. 그러므로 분리해 재사용 가능하게 만듭니다. 먼저 매번 새로운 오브젝트를 만들어야 하는지 생각합니다. RowMapper 콜백 오브젝트에는 상태정보가 없으므로 하나만 만들어서 공유해도 됩니다.
+
+```java
+public class UserDao {
+	public void setDataSource(DataSource dataSource) {
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	// datasource를 직접 사용하지 않으므로 지웁니다.
+	private JdbcTemplate jdbcTemplate;
+	
+    // RowMapper 콜백 인터페이스를 분리, 재사용 코드로 만들었습니다.
+	private RowMapper<User> userMapper = 
+		new RowMapper<User>() {
+				public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+				User user = new User();
+				user.setId(rs.getString("id"));
+				user.setName(rs.getString("name"));
+				user.setPassword(rs.getString("password"));
+				return user;
+			}
+		};
+
+	
+	public void add(final User user) {
+		this.jdbcTemplate.update("insert into users(id, name, password) values(?,?,?)",
+						user.getId(), user.getName(), user.getPassword());
+	}
+
+	public User get(String id) {
+		return this.jdbcTemplate.queryForObject("select * from users where id = ?",
+				new Object[] {id}, this.userMapper);
+                // 인스턴스 변수를 사용하도록 변경합니다.
+	} 
+
+	public void deleteAll() {
+		this.jdbcTemplate.update("delete from users");
+	}
+
+	public int getCount() {
+		return this.jdbcTemplate.queryForInt("select count(*) from users");
+	}
+
+	public List<User> getAll() {
+		return this.jdbcTemplate.query("select * from users order by id",this.userMapper);
+	}
+
+}
+```
+
+다음과 같이 UserDao가 정리되었습니다.
+- UserDao에는 User정보를 DB와 상호작용하는 로직만 담겨있습니다. 높은 응집도
+  - User 오브젝트와 User 테이블 사이에 어떻게 무엇을 주고받을지에 대한 정보
+- JDBC API를 사용하는 방식, 예외철, 리소스의 반납, DB연결을 어떻게 가져올지는 JdbcTempalte에 달려있습니다. 변경이 일어나도 UserDao에 변경을 주지않습니다. 낮은 결합도
+  - 하지만 특정 템플릿/콜백에서는 템플릿을 직접 이용하므로 강한 결합도를 갖습니다.
+  - JdbcOperations 인터페이스를 통해 JdbcTemplate을 DI받아 사용하면 결합도를 낮춥니다.
+  
+조금 더 개선할 수 있는 부분을 생각해봅니다.
+1. userMapper가 한 번 만들어지면 변경되지 않는 프로퍼티 성격을 띠고 있으니, 인스턴스 변수가 아니라 UserDao빈의 DI용 프로퍼티로 만들 수 있습니다. UserMapper를 독립된 빈으로 등록하고 XML설정에 User테이블의 필드명과 User오브젝트의 매핑정보를 담을 수 있습니다. 이렇게 분리하면 필드명이 변하거나 매핑 방식이 바뀌는 경우에 UserDao 코드를 수정하지 않아도 됩니다.
+2. UserDao의 메소드에서 사용하는 SQL문장을 UserDao코드가 아니라 외부 리소스에서 읽어와 사용하게 하는 것입니다. 이렇게하면 SQL문을 UserDao코드와 분리할 수 있습니다.
+
+### 7. 정리
+3장에서는 아래와 같은 내용을 공부했습니다.
+- 예외가 발생할 수 있는 공유 리소스의 반환 코드는 반드시 try/catch 블록 처리 합니다.
+- 바뀌지 않는 부분은 context로, 바뀌는 부분은 전략으로 만들고 인터페이스를 통해 전략을 변경할 수 있도록 구성합니다.
+- 같은 애플리케이션 안에서 여러 종류의 전략을 구성해서 사용해야 한다면 컨텍스트를 이용하는 클라이언트 메소드에서 직접 전략을 정의하고 제공합니다.
+- 클라이언트 메소드안에 익명 내부 클래스를 사용해서 코드를 간결하게 합니다.
+- 컨텍스트가 하나 이상의 클라이언트 오브젝트에서 사용된다면 클래스를 분리해서 공유하도록 합니다.
+- 컨텍스트는 별도의 빈으로 등록해서 DI받거나 클라이언트 클래스에서 직접 생성해서 사용합니다.
+- 단일 전략 메소드를 가지면서 익명 내부클래스로 매번 새로 만들어 사용하고, 컨텍스트 호출과 동시에 전략DI를 수행하는 방식을 템플릿/콜백 패턴이라고 합니다.
+- 콜백의 코드에서도 코드가 반복된다면 콜백을 템플릿에 넣고 재활용 합니다.
+- 타입이 다양하게 바뀔 수 있다면 제너릭스를 이용합니다.
+- JdbcTemplate
+- 템플릿은 한 번에 하나 이상의 콜백을 사용할 수도있고, 여러번 호출할 수도 있습니다.
+- 템플릿과 콜백 사이에 주고받는 정보에 관심을 둬야합니다.
+- 
