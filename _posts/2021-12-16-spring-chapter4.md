@@ -160,8 +160,157 @@ public void add(User user)throws DuplicateUserIdException {
 2. 정상적인 흐름을 따르는 코드는 그대로 두고, 잔고 부족과 같은 예외상황에서 비지니스적 의미를 띈 예외를 던지도록 만듭니다. 정상적인 흐름을 따르지만 예외가 발생할 수 있는 코드를 try/catch 블록으로 처리 할 수 있어서 보기에도 편합니다. 이때 사용하는 예외는 예외상황에 대한 로직 구현을 강제하도록 의도적으로 체크 예외로 만듭니다.
 
 ```java
-try{// 정상적인 처리 결과를 출력하도록 진행}
-catch(의도적예외클래스 e){// 예외에 담긴 잔고 정보를 가져오고 잔고부족시 안내 메세지를 출력}
+try{// 정상적인 처리 결과를 출력하도록 진행
+}
+catch(의도적예외클래스 e){// 예외에 담긴 잔고 정보를 가져오고 잔고부족시 안내 메세지를 출력
+}
 ```
 
 #### 1-5. SQLException은 어떻게 됐나?
+대부분의 SQLException은 복구가 불가능하고 다룰 수 있는 가능성도 없습니다. 따라서 throws로 방치하지 말고 언체크 예외로 전환해 줘야 합니다.  
+JdbcTemplate은 이 예외처리 전략을 따르고있습니다. 템플릿과 콜백 안에서 발생하는 SQL예외를 런타임 예외인 DataAccessException으로 포장해서 던져줍니다.  
+그래서 DAO메소드에서 SQLException이 모두 사라진 것입니다. 필요한 경우에만 런타임 예외를 잡아서 처리하면 됩니다.  
+
+### 2. 예외전환
+DataAccessException은 SQL예외에서 다루기 힘든 예외정보를 의미있는 예외로 전환해서 추상화해주려는 용도로 쓰이기도 합니다.  
+
+#### 2-1. JDBC의 한계
+JDBC는 가장 많이 사용되는 API중 하나지만 DB를 자유롭게 변경해서 사용할 수 있는 유연한 코드를 보장해 주지는 못합니다.  
+첫째 문제는 SQL입니다. 대용량 데이터를 처리하는 SQL의 경우 대부분 비표준 SQL문장이 만들어집니다. 이는 결국 특정 DB에 종속적인 코드가 됩니다. 
+이를 위해서는 DB별로 별도의 DAO를 만들거나 SQL을 외부에 독립시켜서 DB에 따라 변경해 사용하게 합니다.  
+두 번쨰 문제는 SQL예외 입니다. DB마다 에러의 종류와 원인이 다르기 떄문입니다. 그래서 SQLException의 getErrorCode()로 가져올 수 있는 에러코드도 DB별로 다릅니다.  
+그래서 SQLException은 예외가 발생했을 떄의 DB상태를 담은 DB에 독립적인 SQL 상태정보를 부가적으로 제공합니다. 이 부가정보는 Open Group의 XOPEN SQL 스펙에 정의된 상태코드를 따릅니다.  
+문제는 JDBC드라이버에서 SQLException을 담을 상태코드를 정확하게 만들어주지 않아 사용할 수 없습니다.  
+
+#### 2-2. DB 에러 코드 매핑을 통한 전환
+대신 스프링은 DB별 에러 코드의 종류를 분류해서 스프링이 정의한 예외 클래스와 매핑해놓은 에러 코드 매핑정보 테이블을 만들어두고 이용합니다.
+
+```java
+<bean id="Oracle" class="org.spring...">
+    <property name="badSqlGrammarCodes">    //예외 클래스 종류
+        <value>900,903,904,917,936,942,17006 </value>
+        // 매핑되는 DB 에러코드
+```
+
+JdbcTempalate은 SQLException을 단지 런타임 예외로 포장하는 것이 아니라 DB의 에러 코드를 런타임 에러 계층 구조의 클래스 중 하나로 매핑해줍니다.  
+JdbcTempalate에서 던지는 예외는 모두 DataAcceseeException의 서브클래스 타입입니다. 중복 키 에러를 분류해서 예외처리를 했던 add메소드를 JdbcTemplate을 이용하게 바꾸면,  
+아래와 같이 간단해집니다.
+
+```java
+public void add() throws DuplicateKeyException{
+    // DataAccessException의 계층구조(상속) 클래스로 포장하기 떄문에 예외 포장을 위한 코드가 따로 필요 없습니다.
+    // add메소드를 호출하는 쪽에서 필요에따라 대응하도록 메소드 선언에 넣어줍니다.
+    // JdbcTemplate안에서 DB별로 미리 준비된 에러 코드와 비교해서 적절한 예외를 던져줍니다.
+}
+```
+
+이제 왜 이렇게 계층구조를 이용해 기술에 독립적인 예외를 사용하게 하는지 생각해봅니다.
+
+#### 2-3. DAO 인터페이스와 DataAccessException의 계층 구조
+DataAccessException은 SQLException을 전환하는 용도 뿐만 아니라 JDBC 외의 DA 기술(ORM, iBatis, JPA, JDO, 하이버네이트 등)에서 발생하는 예외에도 적용됩니다.  
+DataAccessException은 의마가 같은 예외라면 데이터 억세스 기술의 종류와 상관없이 일관된 예외가 발생하도록 만들어줍니다.  
+
+우리는 DAO의 코드를 DAO를 사용하는 클라이언트로 부터 감추어ㅆ지만, 메소드 선언에 나타나는 예외정보가 문제가 될 수 있습니다.
+
+```java
+public interface UserDao{
+    public void add(User user);
+    // 완전히 기술에 독립적인 인터페이스인 이 메소드 선언은 사용할 수 없습니다. JDBC가 예외를 던지기 떄문입니다.
+    public void add(User user) throws SQLException;
+    // 따라서 이렇게 선언하게 됩니다. 문제는 DA기술이 던지는 예외가 일치하지 않아 독자적인 예외를 던지게 됩니다.
+}
+```
+
+다행히도 JDBC 이후에 등장한 DA 기술은 런타임 예외를 사용하고, SQLException을 던지는 JDBC API을 사용하는 DAO가 남았는데, 이 경우에는 앞의 내용과 같이 DAO 메소드 내에서 런타임 예외로 포장해서 던져주면 됩니다.  
+이제 throws 없이 DAO에서 사용하는 기술에 완전히 독립적인 인터페이스 선언이 가능해졌습니다. 하지만 아직 불충분합니다. 중복 키 에러처럼 의미있게 처리할수 있는 예외도 있고,  
+시스템 레벨에서 DA 예외를 의미 있게 분리할 필요도 있습니다. 문제는 DA 기술이 달라지면 같은 상황이어도 다른 종류의 예외가 던져진다는 것입니다.(JDBC면 SQLException이, JPA면 PERsistenceException이....)  
+따라서 클라이언트 입장에서는 DA기술에 따라서 예외 처리방법이 달라지게 됩니다. 단지 인터페이스로 추상화하고, 런타임 예외로 전환하는것만으로는 의미가 없습니다.  
+
+그렇기 때문에 스프링은 다양한 DA기술을 사용할 떄 발상하는 예외들을 추상화해서 DataAccessException 계층구조 안에 정리해 놓았습니다.  
+각각의 DA기술이 보낸 에러 코드를 DB별로 매핑해서 그에 해당하는 의미 있는 DataAccessExcetion의 서브클래스 중 하나로 전환해서 던져줍니다.  
+심지어 JDBC 예외가 아닌 템플릿 메소드나 DAO 메소드에서도 활용할 수 있는 예외가 정의되어 있습니다.  
+직접 구현하고 싶다면 서브클래스를 상속해서 직접 정의해 사용할 수도 있습니다.  
+결국 인터페이스, 런타임 예외, DataAccessException 예외 추상화를 적용하면 DA 기술과 구현 방법에 독립적인 이상적인 DAO를 만들 수가 있습니다.  
+
+#### 2-4. 기술에 독립적인 UserDao 만들기
+지금까지 만들어온 UserDao클래스를 인터페이스와 구현 클래스로 분리합니다.
+
+```java
+pulbic interface UserDao{
+    void add(User user);
+    User get(String id);
+    List<User> getAll();
+    ...
+
+    // 수정자 메소드를 인터페이스에 추가하지 않습니다.
+    // 구현 방법에 따라 변경될 수 있는 메소드이고, 클라이언트가 알고 있을 필요도 없기 때문입니다.
+}
+
+public class UserDaoJdbc implements UserDao{
+    ....
+    // xml 파일도 변경합니다. 클래스만 변경합니다. 보통 bean id는 구현 인터페이스 이름을 따르기 떄문입니다.
+}
+```
+
+테스트에서는 DAO의 기능에 관심이있다면 그대로 사용하도록 하고, 특정 DA기술을 사용한 구현 내용에 관심이 있다면 DI받을때 구현 클래스를 사용합니다.  
+이제 UserDaoTest에서 중복된 키를 가진 정보를 등록했을 떄 어떤 예외가 발생하는지를 확인하기 위한 테스트를 추가합니다.
+
+```java
+@Test(expected=DataAccessException.class)
+// 중복 예외는 DataAccessException 예외 중 하나를 던져야 합니다. 예외가 발생하면 성공하는 expected를 이용합니다.
+// expected없이 테스트하면 DuplicatedKeyException이 발생하는 것을 확인할 수 있습니다.
+public void duplicatedKey(){
+    dao.deleteAll();
+    
+    dao.add(user1);
+    dao.add(user1);
+}
+```
+
+우리는 DA기술에 상관없이 키중복 상황에서 동일한 예외가 발생하리라 기대하지만, 아쉽게도 DuplicatedKeyException은 아직까지 JDBC를 이용하는 경우에만 발생합니다.  
+이처럼 DataAccessException의 기술이 완벽하다고 기대할 수는 없습니다. 이를 해결하려면 결국 직접 예의를 정의해두고 각각 메소드에서 좀 더 상세한 예외 전환을 해줘야합니다.  
+대부분의 중첩된 예외로 SQLException이 전달되기 떄문에 이를 다시 스프링의 "JDBC 예외 전환 클래스"의 DataAccessException으로의 전환하는 도움을 받아서 처리할 수 있습니다.  
+바로 SQLErrorCodeSQLExceptionTranslator 입니다. 에러 코드 변환에 필요한 DB종류를 알아내기 위해 현재 DataSource를 필요로 합니다.  
+
+```java
+public class UserDaoTest{
+    @Autowired UserDao dao;
+    @Autowired DataSource dataSource;
+    ....
+
+    // 픽스처 등
+    
+    @Test
+    public void sqlExceptionTranslate(){
+        dao.deleteAll();
+
+        try{
+            dao.add(user1);
+            dao.add(user1);
+        }
+        catch(DuplicateKeyException ex){
+            SQLException se = (SQLException)ex.getRootCause();
+            // DuplicateKeyException은 JDBC API에서 처음 발생한 SQLException을 내부에 갖고 있습니다.
+            //getRootCause()를 이용해 SQLException을 가져옵니다.
+            SQLExceptionTranslator set = new SQLErrorCodeSQLExceptiontranslator(this.dataSource);
+            // DI받은 datasource를 참고해 SQLException 변환
+
+            assertThat(set.translate(null,null,se),is(DuplicateKeyException.class));
+            // 변환기인 set에 추출한 sqlexception인 se를 파라미터로 넣고 translae()를 이용헤 DataAccessException의 타입으로 변환합니다.
+            // 스프링 예외전환 API를 사용해서 DuplicateKeyException이 만들어 졌는가를 검증합니다.
+            // equals() 비교 대신 is()로 비교하면 파라미터 클래스의 인스턴스 인지 검사합니다.
+            // null 파라미터는 에러 메시지를 만들떄 사용하는 정보이므로 null로 넣어뒀습니다.
+        }
+    }
+}
+```
+
+### 3. 정리
+- 에외의 조취를 취하지 않거나 의미 없는 throws 는 위험합니다.
+- 예외는 복구하거나 의도적으로 전달하거나 적절한 예외로 전환해야 합니다.
+- 런타임 예외로 포장하거나 좀 더 의미 있는 예외로 변경시키는 예외 전환이있습니다.
+- 복구할 수 없는 예외는 런타임 예외로 전환합니다.
+- 로직을 담기 위한 예외는 체크 예외로 만듭니다.
+- SQLExcpetion의 에러코드는 DB에 독립적인 예외로 전환될 필요가 있습니다.
+- DataAccessException을 통해 추상한 런타임 예외 계층을 제공 받습니다.
+- DAO를 데이터 억세스 기술에서 독립시키려면 인터페이스 도입, 런타임 예외 전환, 기술에 독립적인 추상화된 예외로 전환이 필요합니다.
