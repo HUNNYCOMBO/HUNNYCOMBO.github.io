@@ -357,3 +357,353 @@ public void upgradeLevel(User user){
 	userDao.update(user);
 }
 ```
+
+이처럼 객체지향적인 코드는 데이터를 요구하는 것이 아닌 데이터를 갖고있는 다른 오브젝트에게 작업을 해달라고 요청해야합니다. 지금 코드는 UserService는 User에게 레벨 업그레이드 작업을 요청하고,  
+User는 Level에게 다음 레벨이 무엇인지 알려달라 요청하고 있습니다.  
+
+이제 User의 upgradeLevel()에 대한 테스트도 만들어봅니다.  
+
+```java
+public class UserTest {
+	User user;
+	
+	@Before
+	public void setUp() {
+		user = new User();
+		// User는 스프링 빈이 관리하는 객체가 아니므로 생성자를 호출합니다.
+	}
+	
+	@Test()
+	public void upgradeLevel() {
+		Level[] levels = Level.values();
+		// enum에 정의된 모든 level을 가져옵니다.
+		for(Level level : levels) {
+			if (level.nextLevel() == null) continue;
+			// 다음 단계가 null인 경우 아래 코드를 실행하지 않습니다.
+			user.setLevel(level);
+			user.upgradeLevel();
+			assertThat(user.getLevel(), is(level.nextLevel()));
+		}
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void cannotUpgradeLevel() {
+		// 더 이상 업그레이드 할 레벨이 없는 경우 예외상황 테스트입니다.
+		Level[] levels = Level.values();
+		for(Level level : levels) {
+			if (level.nextLevel() != null) continue;
+			// null일 경우만 테스트 합니다.
+			user.setLevel(level);
+			user.upgradeLevel();
+		}
+	}
+}
+```
+
+UserServiceTest도 아직 개선할 사항이 남아있습니다. 기존 테스트에서는 checkLevel()을 호출할 때 일일이 다음 단계의 레벨이 무엇인지 넣어주었습니다. Level이 갖고 있어야 할 다음 레벨이 무엇인지는 테스트에 직접 넣어둘 필요가 없습니다. 아래와 같이 upgradeLevels()를 수정합니다.
+
+```java
+@Test
+	public void upgradeLevels() {
+		userDao.deleteAll();
+		for(User user : users) userDao.add(user);
+		
+		userService.upgradeLevels();
+		
+		checkLevelUpgraded(users.get(0), false);
+		checkLevelUpgraded(users.get(1), true);
+		checkLevelUpgraded(users.get(2), false);
+		checkLevelUpgraded(users.get(3), true);
+		checkLevelUpgraded(users.get(4), false);
+	}
+
+	private void checkLevelUpgraded(User user, boolean upgraded) {
+		// 파라미터를 통해 어떤 레벨로 바뀔것인가가 아닌, 다음 레벨로 업그레이드가 될 여부를 지정합니다.
+		User userUpdate = userDao.get(user.getId());
+		if (upgraded) {
+			assertThat(userUpdate.getLevel(), is(user.getLevel().nextLevel()));
+			// 어떤 레벨로 바뀔 것인지는 Level에게 요청합니다.
+		}
+		else {
+			assertThat(userUpdate.getLevel(), is(user.getLevel()));
+			// 업그레이드가 일어나지 않은 부분입니다.
+		}
+	}
+```
+
+이렇게 수정하면, 로직이 들어나지 않으면서 각 사용자에 대해 업그레이드를 확인하려는 것인지 아닌지가 true,false로 쉽게 나타나 있어서 보기 좋습니다.  
+다음은 UserService 클래스의 업그레이드 조건인 부분도 중복되어 나타나기에 수정합니다. 한 가지 변경 이유가 바생했을 때 여러 군데를 고치게 만든다면 중복입니다.  
+
+```java
+public class UserService {
+	public static final int MIN_LOGCOUNT_FOR_SILVER = 50;
+	public static final int MIN_RECCOMEND_FOR_GOLD = 30;
+	// 로그인 조건으로 둘 상수를 선언합니다.
+
+		private boolean canUpgradeLevel(User user) {
+		Level currentLevel = user.getLevel(); 
+		switch(currentLevel) {                                   
+		case BASIC: return (user.getLogin() >= MIN_LOGCOUNT_FOR_SILVER); 
+		case SILVER: return (user.getRecommend() >= MIN_RECCOMEND_FOR_GOLD);
+		// 상수 도입
+		case GOLD: return false;
+		default: throw new IllegalArgumentException("Unknown Level: " + currentLevel); 
+		}
+	}
+
+// 테스트에서도 해당 상수를 이용하게끔 바꿉니다.
+
+public class UserServiceTest {
+	@Autowired 	UserService userService;	
+	@Autowired UserDao userDao;
+	
+	List<User> users;	// test fixture
+	
+	@Before
+	public void setUp() {
+		users = Arrays.asList(
+				new User("bumjin", "name1", "p1", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER-1, 0),
+				// 테스트에선 가능한 경계값을 설정하는게 좋습니다.
+				new User("joytouch", "name2", "p2", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER, 0),
+				new User("erwins", "name3", "p3", Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD-1),
+				new User("madnite1", "name4", "p4", Level.SILVER, 60, MIN_RECCOMEND_FOR_GOLD),
+				new User("green", "name5", "p5", Level.GOLD, 100, Integer.MAX_VALUE)
+				);
+	}
+```
+
+상수를 도입함으로서 무슨 의도로 어떤 값을 넣었는지 이해하기 쉬워졌습니다. 만약 레벨을 업그레이드하는 정책을 유연하게 변경하고 싶다면, UserService에서 그떄그떄 코드를 수정하기보단,  
+UserService에서 분리하는 방법을 고려하면 됩니다. 분리된 업그레이드 정책을 담은 오브젝트는 DI를 통해 UserService에 주입합니다.  
+
+### 2. 트랜잭션 서비스 추상화
+#### 2-1. 모 아니면 도
+만약 정기 사용자 레벨 관리 작업을 하는 도중 오류가 생겨서 작업을 완료할 수 없다면, 그떄까지 변경된 작업은 그대로 둘지 모두 초기 상태로 돌려놔야 하는지에 대한 질문이 나왔습니다. 그렇다면 지금까지 만든 코드는 어떻게 작동할까요? 테스트를 만들어 확인해봅니다. 5명의 사용자를 업그레이드 하다 중간에 예외를 일으키게 합니다.  
+이를 위해 직접 UserService 코드를 건들이는 것은 좋지 않으므로, UserService를 상속받은 클래스를 만들어 사용합니다. 테스트에서만 사용할 클래스라면 테스트 클래스 내부에 스태틱 클래스로 만드는 것이 간편합니다.  
+UserService의 메소드는 대부분 private로 선언되 있어 접근이 불가하므로, 이런 일은 피하는게 좋지만 어쩔 수 없이 upgradeLevel()의 접근 제한자를 protected로 수정합니다.  
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations="/test-applicationContext.xml")
+public class UserServiceTest {
+	static class TestUserService extends UserService {
+		// 내부 스태틱 클래스
+		private String id;
+
+		private TestUserService(String id){
+			// 예외를 발생시킬 User 오브젝트의 id를 지정합니다.
+			this.id = id;
+		}
+
+		@overide
+		protected void upgradeLevel(User user) {
+			if(user.getId().equals(this.id)) throw new TEstUserServiceException();
+			// 지정된 User 오브젝트가 발견되면 예외를 던져 작업을 강제로 중단합니다.
+			super.upgradeLevel(user);
+		}
+	}
+
+	static class TestUserServiceException extends RuntimeException{
+		// 다른 예외와 구분하기 위해 정의
+	}
+
+	@Test
+	public void upgradeAllOrNothing(){
+		UserService testUserService = new TestUserService(users.get(3).getId());  
+		// 스프링 빈에 등록하지 않고 직접 만듭니다.
+		testUserService.setUserDao(this.userDao); 
+		// 수동 DI, UserService를 상속받아 사용할수 있는 메소드입니다. DAO는 스프링 빈입니다.
+		// 컨테이너에 종속적이지 않은 스프링 DI 스타일의 장점입니다.
+		testUserService.setDataSource(this.dataSource);
+		 
+		userDao.deleteAll();			  
+		for(User user : users) userDao.add(user);
+		
+		try {
+			testUserService.upgradeLevels();   
+			fail("TestUserServiceException expected"); 
+			// 혹시 코드를 잘못작성해서 예외 발생이없다면 fail()에 의해 테스트가 실패합니다.
+		}
+		catch(TestUserServiceException e) { 
+			// 예외를 잡아서 계속 진행되도록 합니다.
+		}
+		
+		checkLevelUpgraded(users.get(1), false);
+		// 예외가 발생하기 전에 레벨 변경이 있었던 사용자의 레벨이 롤백되었는지 확인합니다.
+	}
+}
+```
+
+이렇게 테스트를 돌려보면 우리의 코드는 오류전 업그레이드 된 채로 유지되는 것을 알 수 있습니다. 이런 문제는 **트랜잭션** 문제입니다.  
+모든 사용자의 레벨을 업그레이드하는 작업인 upgradeLevel()이 하나의 트랜잭션 안에서 동작하지 않았기 떄문입니다.
+
+> 트랜잭션 : 더 이상 나눌 수 없는 단위 작업(원자성)
+
+모든 사용자에 대한 업그레이드 작업은 전체가 다 성공하던지 다 실패해야 합니다.  
+
+
+#### 2-2. 트랜잭션 경계설정
+DB는 그 자체로 완벽한 트랜잭션을 지원합니다. SQL을 이용해 다중 로우를 수정할때 일부 로우만 수정하는 경우는 없습니다. 하지만 여러 개의 SQL이 사용되는 작업을 하나의 트랜잭션으로 취급해야 하는 경우도 있습니다.  
+대표적으로 계좌이체같은 경우입니다. 이체를 할 때는 출금계좌의 잔고는 이체금액만큼 줄어들고, 입금계좌에는 이체금액만큼 증가해야 합니다. 첫번째 SQL을 성공적으로 실행했지만 두번쨰 SQL이 중단됐다면, 앞에서 처리한 SQL작업도 취소시켜야합니다. 이런 작업을 **트랜잭션 롤백**이라고 합니다.  
+여러 개의 SQL을 하나의 트랜잭션으로 처리하는 경우에 모든 SQL 작업을 성공적으로 마무리했다고 DB에 알려줘서 작업을 화정시키는 것은 **트랜잭션 커밋**이라고 합니다.  
+
+모든 트랜잭션은 시작하는 지점과 끝나는 지점이 있습니다. 끝나는 방법은 두가지 롤백과 커밋 두가지입니다. 애플리케이션 내에서 트랜잭션이 시작되고 끝나는 위치를 트랜잭션의 경계라고 합니다. 이 트랜잭션 경계를 설정하는 일은 매우 중요한 작업입니다.  
+
+JDBC의 트랜잭션은 하나의 Connection을 가져와 사용하다가 닫는 사이에 일어납니다. 즉 트랜잭션의 시작과 종료는 Connection오브젝트를 통해 이루어집니다. 기본 설정은 작업마다 자동 커밋해 트랜잭션을 끝내버리므로 여러개의 DB작업을 모아서 트랜잭션을 만드는 기능이 꺼져있습니다. setAutoCommit(false)를 이용해 트랜잭션의 시작을 선언하고 commit()또는rollback()으로 종료합니다. 이런 작업을 트랜잭션의 경계설정 이라고 합니다. 하나의 DB커넥션 안에서 만들어지는 트랜잭션을 로컬 트랜잭션 이라고 합니다.  
+
+
+```java
+Connection c = dataSource.getConnection();
+
+c.setAutoCommit(false); //트랜잭션 시작
+try{
+	excute1;
+	...
+	execute2;
+
+	c.commit();
+}
+catch(){
+	c.rooback();
+}
+c.close();
+```
+
+JdbcTemplate은 하나의 템플릿 메소드 안에서 Connection을 가져오고 작업을 마치면 닫아주고 템플릿메소드를 빠져나옵니다. 이렇게 보면 JdbcTemplate의 메소드를 사용하는 UserDao는 메소드마다 독립적인 트랜잭션으로 실행될 수 밖에없습니다. upgradeAllOrNothing() 에는 순차적으로 진행하다 2번째 사용자에서 레벨을 변경하고 트랜잭션을 종료시키기 떄문에 그 결과가 DB에 남아있는 것입니다.  
+DAO 메소드에서 DB커낵션을 매번 만들기 떄문에 결국 DAO를 사용하면 UserService내에서 진행되는 여러가지 작업을 하나의 트랜잭션으로 묶는 일이 불가능해집니다.  
+
+이를 해결하려면 UserSerivce에서 트랜잭션의 경계설정 작업을 하도록 해야합니다. 트랜잭션 경계를 upgradeLevel()안에 두려면 DB 커낵션도 이 메소드 안에서 만들고 종료시켜야 합니다.  
+하지만 이 방법은 결국 지금까지 해왔던 SoC, 싱글톤(**트랜잭션을 위해 메소드마다 connection 객체를 계속 파라미터로 넘겨야 함**), 독립, DI, 테스트 코드 등의 장점들을 없애버리는 문제가 발생합니다.  
+
+#### 2-3. 트랜잭션 동기화
+스프링은 이 문제를 해결할 수 있는 멋진 방법을 제공합니다. 먼저 upgradeLevels()안에서 만들어진 connection객체를 필요할때마다 파라미터로 넘기는 문제는 트랜잭션 동기화 방식으로 해결합니다.  
+
+> 트랜잭션 동기화 : DAO가 사용하는 JdbcTempalte이 트랜잭션을 시작하기 위해 만든 Conenction 오브젝트를 특별한 저장소에 보관하고, 이후 호출되는 메소드에서는 이를 사용하게 함.
+
+작업 흐름은 다음과 같습니다.  
+
+1. UserService는 Connection을 생성
+2. 이를 트랜잭션 동기화 저장소에 저장해두고 setAutoCommit(false)를 호출해 트랜잭션 시작
+3. 첫 번째 update()가 호출되고, update() 내부에서 사용하는 JdbcTemplate 메소드에서는
+4. 트랜잭션 동기화 저장소에 현재 시작된 트랜잭션을 가진 Connection 오브잭트가 존재하는지 확인
+5. 있다면 발견하고 가져온 connection을 이용해 preparedStatement를 만들어 SQL을 실행하고, 닫지는 않은채로 마침
+6. connection은 열려있고 트래잭션은 진행중인 채로 저장소에 저장되어있음
+7. 두번째 update() 호출 이후 4번부터 반복
+8. 정상적으로 끝났으면 commit()을 호출해 완료, 예외시 rollback()
+9. connection 닫음
+
+트랜잭션 동기화 저장소는 작업 스레드마다 독립적으로 connection오브젝트를 저장하고 관리하기 떄문에 서버의 멀티스레드 환경에서도 충돌이 날 염려가 없습니다.  
+
+```java
+	private DataSource dataSource;  			
+	// Db커넥션을 직접 다루므로 DI 설정을 해줍니다.
+
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+
+		public void upgradeLevels() throws Exception {
+		TransactionSynchronizationManager.initSynchronization();  
+		// 트랜잭션 동기화 관련 클래스입니다. 트랜잭션 동기화 작업을 초기화합니다.
+		Connection c = DataSourceUtils.getConnection(dataSource); 
+		// DataSoruceUtils에서 제공하는 메소드를 통해 DB커넥션을 생성합니다.
+		// dataSoruce에서 직접 가져오지 않는 이유는 트랜잭션 동기화에 사용하도록 저장소에 바인딩해주기 때문입니다.
+		c.setAutoCommit(false);
+		// 트랜잭션 시작
+		
+		try {									   
+			List<User> users = userDao.getAll();
+			for (User user : users) {
+				if (canUpgradeLevel(user)) {
+					upgradeLevel(user);
+				}
+			}
+			c.commit();  
+		} catch (Exception e) {    
+			c.rollback();
+			throw e;
+		} finally {
+			DataSourceUtils.releaseConnection(c, dataSource);	
+			// 닫을때도 스프링 유틸리티 메소드를 이용합니다.
+			TransactionSynchronizationManager.unbindResource(this.dataSource);  
+			TransactionSynchronizationManager.clearSynchronization();  
+			// 동기화 작업 종료도 해줘야 합니다.
+		}
+	}
+
+	// UserServiceTest의 upgradeAllOrNothing()에 dataSource빈을 가져와 주입해주는 @autowired와 수정자메소드를 선언해줍니다.
+	// 트랜잭션에 동기화에 필요한 datasource를 DI해줘야 하기 때문입니다.
+	public class UserServiceTest {
+	@Autowired UserService userService;	
+	@Autowired UserDao userDao;
+	@Autowired DataSource dataSource;
+
+	@Test
+	public void upgradeAllOrNothing() {
+		UserService testUserService = new TestUserService(users.get(3).getId());  
+		testUserService.setUserDao(this.userDao);
+		testUserService.setDataSource(this.dataSource);
+		...
+	}
+	
+	@Test
+	public void upgradeLevels() throws Exception {
+		userDao.deleteAll();
+		for(User user : users) userDao.add(user);
+		
+		userService.upgradeLevels();
+		// 스프링 빈인 userService를 사용해야 합니다. userService의 필드 dataSource가 스프링 빈으로 등록되 DI받아야 합니다.
+		// xml설정에 프로퍼티로 dataSource를 추가합니다.
+		
+		checkLevelUpgraded(users.get(0), false);
+		checkLevelUpgraded(users.get(1), true);
+		checkLevelUpgraded(users.get(2), false);
+		checkLevelUpgraded(users.get(3), true);
+		checkLevelUpgraded(users.get(4), false);
+	}
+	}
+
+	<bean id="userService" ...>
+		<property name="dataSoruce" ref="dataSource" />
+```
+
+JdbcTemplate은 영리하게 작동합니다. 미리 생성된 트랜잭션 동기화 저장소에 등록된 커넥션이 없는 경우 직접 DB커넥션을 만들고 트랜잭션을 시작하지만, 트랜잭션 동기화를 시작해놓았다면 직접 DB커넥션을 만드는 대신 트랜잭션 동기화 저장소에 들어있는 DB커낵션을 사용합니다. 따라서 트랜잭션 적용 여부에 맞춰 UserDao 코드를 수정할 필요가 없습니다.  
+JDBC 코드의 try/catch 흐름 지원, SQL예외 지원과 함께 JdbcTemplate이 제공하는 세가지 유용한 기능 중 하나입니다.  
+
+#### 2-4. 트랜잭션 서비스 추상화
+문제가 하나 발생했습니다. 한 회사에서 이 사용자 관리 모듈을 사용하기로 했는데 이 회사는 여러개의 DB를 사용하고 있다고 가정합니다. 그래서 하나의 트랜잭션 안에서 여러 개의 DB에 데이터를 넣는 작업을 해야 할 필요가생겼습니다. 로컬 트랜잭션은 하나의 DB Connection에 종속되기 떄문에 한개 이상의 DB로의 작업을 하나의 트랜잭션으로 만드는건 불가능합니다.  
+
+따라서 별도의 트랜잭션 관리자를 통해 트랜잭션을 관리하는 **글로벌 트랜잭션** 방식을 사용해야 합니다. 자바는 이런 글로벌 트랜잭션을 지원하는 트랜잭션 매니저를 지원하기 위한 API인 JTA(Java Transaction API)를 제공합니다.  
+애플리케이션에서는 기존의 방법대로 DB는 JDBC, 메세징 서버라면 JMS 같은 API를 사용해서 필요한 작업을 수행합니다. 단, 트랜잭션은 JDBC나 JMS API를 직접 제어하지않고 JTA를 통해 트랜잭션 매니저가 관리하도록 위임합니다. 트랜잭션 매니저는 DB와 메세징 서버의 리소스 매니저와 XA 프로토콜을 통해 연결됩니다. 일단은 하나 이상의 DB가 참여하는 트랜잭션을 만들려면 JTA를 사용해야 한다는 사실만 기억해둡니다.  
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGhcbiAgICBBW-yVoO2UjOumrOy8gOydtOyFmF0gLS0-fEpEQkN8IEJb66as7IaM7IqkIOunpOuLiOyggCAvIERCIDFdXG4gICAgQSAtLT58SkRCQ3wgQ1vrpqzshozsiqQg66ek64uI7KCAIC8gREIgMl1cbiAgICBBIC0tPnxKVEF8IERb7Yq4656c7J6t7IWYIOunpOuLiOyggCAvIO2KuOuenOyereyFmCDshJzruYTsiqRdXG4gICAgRCAtLT58WEHtlITroZzthqDsvZx8IEJcbiAgICBEIC0tPnxYQe2UhOuhnO2GoOy9nHwgQ1xuICAgIEEgLS0-fEpNU3wgRVvrpqzshozsiqQg66ek64uI7KCAIC8gSk1TIOyEnOuyhF1cbiAgICBEIC0tPnxYQe2UhOuhnO2GoOy9nHwgRSIsIm1lcm1haWQiOnsidGhlbWUiOiJkYXJrIn0sInVwZGF0ZUVkaXRvciI6ZmFsc2UsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)](https://mermaid.live/edit#eyJjb2RlIjoiZ3JhcGhcbiAgICBBW-yVoO2UjOumrOy8gOydtOyFmF0gLS0-fEpEQkN8IEJb66as7IaM7IqkIOunpOuLiOyggCAvIERCIDFdXG4gICAgQSAtLT58SkRCQ3wgQ1vrpqzshozsiqQg66ek64uI7KCAIC8gREIgMl1cbiAgICBBIC0tPnxKVEF8IERb7Yq4656c7J6t7IWYIOunpOuLiOyggCAvIO2KuOuenOyereyFmCDshJzruYTsiqRdXG4gICAgRCAtLT58WEHtlITroZzthqDsvZx8IEJcbiAgICBEIC0tPnxYQe2UhOuhnO2GoOy9nHwgQ1xuICAgIEEgLS0-fEpNU3wgRVvrpqzshozsiqQg66ek64uI7KCAIC8gSk1TIOyEnOuyhF1cbiAgICBEIC0tPnxYQe2UhOuhnO2GoOy9nHwgRSIsIm1lcm1haWQiOiJ7XG4gIFwidGhlbWVcIjogXCJkYXJrXCJcbn0iLCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)
+
+아래는 JTA를 이요한 트랜잭션 코드 구조입니다.
+```java
+InitialContext ctx - new InitialContext();
+UserTransaction tx = (UserTransaction)ctx.lookup(USER_TX_JNDI_NAME);
+// JNDI를 이용해 서버의 UserTransaction 오브젝트를 가져옵니다.
+
+tx.begin();
+Connection c = dataSource.getConnect();
+// JNDI로 가져온 dataSource를 이용합니다.
+try{
+	// DA 코드
+	tx.commit();
+}catch(){
+	tx.rollback();
+	throw e;
+}finayll{
+	c.close();
+}
+```
+
+문제는 JDBC 로컬 트랜잭션을 JTA를 이용하는 글로벌 트랜잭션으로 바꾸려면 UserService의 코드를 수정해야 합니다. 로컬 트랜잭션을 사용하는 고객을 위해서는 JDBC를 이용한 트랜잭션 관리 코드를, 글로벌 트랜잭션을 필요로 하는 곳을 위해서는 JTA를 이용한 트랜잭션 관리 코드를 적용해야 한다는 문제가 생깁니다. UserService의 로직이 바뀌지 않았음에도 기술 환경에따라서 코드가 바뀌어버리게 돼버렸습니다.  
+또, 하이버네이트를 이용하는 경우에도 트랜잭션 관리 코드가 JDBC나 JTA의 코드와 다르기 떄문에(Connection대신 Session과 독자적인 트랜잭션 관리 API를 사용) 코드를 변경해야 합니다.  
+
+즉, **JDBC에 종속적인 Conection을 이용한 트랜잭션 코드**가 UserService에 등장하면서 부터 UserDao의 구현 클래스에 의존하는 코드가 돼버렸습니다.  
+UserService의 메소드 안에서 트랜잭션 경계설정 코드를 제거할 수는 없지만, 특정 기술에 의존적인 Connection기능 오브젝트에 종속되지 않게 할 수 있는 방법이 있습니다.  
+트랜잭션의 경계설정을 담당하는 코드는 유사한 구조를 갖습니다. 여러 기술의 사용법에 공통점이 있다면 추상화를 생각해볼 수 있습니다.  
+
+> 추상화 : 하위 시스템의 공통점을 뽑아내서 분리시킵니다. 하위 시스템이 바뀌어도/무엇인지 알지 못해도 일관된 방법으로 접근가능 합니다. 예를들면 DB는 모두 SQL을 사용하는 공통점이 있기에, 이를 뽑아내 추상화한 JDBC가 있습니다. JDBC는 DB종류에 상관없이 일관된 방법으로 데이터 엑세스 코드를 제공합니다.
+
+스프링은 트랜잭션 기술의 공통점을 담은 트랜잭션 추상화 기술을 제공하고 있습니다.
