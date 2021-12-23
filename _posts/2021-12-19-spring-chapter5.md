@@ -706,4 +706,281 @@ UserService의 메소드 안에서 트랜잭션 경계설정 코드를 제거할
 
 > 추상화 : 하위 시스템의 공통점을 뽑아내서 분리시킵니다. 하위 시스템이 바뀌어도/무엇인지 알지 못해도 일관된 방법으로 접근가능 합니다. 예를들면 DB는 모두 SQL을 사용하는 공통점이 있기에, 이를 뽑아내 추상화한 JDBC가 있습니다. JDBC는 DB종류에 상관없이 일관된 방법으로 데이터 엑세스 코드를 제공합니다.
 
-스프링은 트랜잭션 기술의 공통점을 담은 트랜잭션 추상화 기술을 제공하고 있습니다.
+스프링은 트랜잭션 기술의 공통점을 담은 트랜잭션 추상화 기술을 제공하고 있습니다. PlatformTransactionManager 추상 인터페이스 입니다. 
+
+```java
+public void upgradeLevels(){
+	PlatformTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+	// JDBC를 이용할 때는 해당 구현 클래스를 이용하여 dataSoruce를 파라미터로 넘깁니다.
+	// 적용 기술에 따라 구현 클래스가 바뀝니다.
+	// transactionManager = new JTATrasactionManager(); 로 바꾸어도 메소드는 바꾸지않아도 됩니다.
+
+	TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+	// getTransaction()으로 트랜잭션을 시작합니다. 기존 JDBC에서는 Connection을 생성하고 트랜잭션을 시작한것과 다릅니다.
+	// 필요에 따라 트랜잭션 매니저가 DB 커낵션을 가져오는 역할을 합니다.
+	// 파라미터 오브젝트는 트랜잭션에 대한 속성을 담고있습니다.
+	// 시작된 트랜잭션은 status에 저장됩니다.
+
+	try{
+		List<User> users = userDao.getAll();
+		for (User user : users){
+			if (canUpgradeLevel(user)){
+				upgradeLevel(user);
+			}
+		}
+	transactionManager.commit(status);
+	// 트랜잭션에 대한 조작이 필요할때 PlatformTransactionManager 메소드의 파라미터로 넘겨주면 됩니다.
+	} catch(RuntimeException e){
+		transactionManager.rollback(status);
+		thorw e;
+	}
+}
+```
+
+어떤 트랜잭션 매니저 구현 클래스를 사용할지 UserService가 알고 있는 것은 DI 원칙에 위배되므로, 스프링의 DI방식으로 외부에서 주입받도록 수정합니다.  
+DataSourceTransactionManager를 스프링 빈으로 등록해야하는데, 어떤 클래스든 빈으로 등록할 때 먼저 검토해야할 것은 싱글톤으로 만들어져 여러 스레드에서 동시에 사용해도 괜찮은가에 대한 것입니다. 무상태가아니고 멀티스레드환경에 safe하지 않다면 문제가 발생합니다. 스프링이 제공하는 PlatformTransactionManager 구현 클래스들은 싱글톤으로 사용이 가능합니다.  
+
+```java
+public class UserService {
+	...
+	private PlatformTransactionManager transactionManager;
+	// DI 받도록 수정자메소드와 필드를 추가합니다.
+	
+		public void setTransactionManager(PlatformTransactionManager transactionManager) {
+			// 관례예외적으로 PlatFormtransactionManager의 수정자 메소드와 변수명은 transactionManager로 합니다.
+		this.transactionManager = transactionManager;
+	}
+
+// xml
+<bean id="userService" ...>
+	<property name="transactionManager" ref...>
+	// 기존의 dataSource 프로퍼티를 없앱니다.
+
+<bean id="transactionManager" ...>
+	<property name="dataSource" ref...>
+	// dataSoruce 빈으로부터 Connection을 가져와 처리하기 트랜잭션을 처리하기 때문에 dataSource 프로퍼티를 가져야 합니다.
+
+// 테스트에서도 수동 DI를 하는 upgradeAllOrNothing()는 수정이 필요합니다.
+public class UserSerivceTest{
+	@Autowired
+	PlatformTransacitonManager transactionManager;
+	// 스프링 컨테이너로부터 transactionManager 빈을 주입받습니다.
+
+	@Test
+	public void upgradeAllOrNothing() thorws Exception{
+		...
+		testUserService.setTransactionManager(transactionManager);
+		// 수동 DI
+	}
+}
+```
+
+UserSerivce는 트랜잭션 기술에서 완전히 독립적인 코드가 됐습니다. 사용 DB가 바뀌어도 UserSerivce의 코드는 조금도 수정할 필요가 없습니다.  
+
+### 3. 서비스 추상화와 단일 책임 원칙
+UserDao와 UserService는 각각 담당하는 로직에 따라 분리되고, 독자적으로 확장이 가능하도록 만들었습니다. 같은 애플리케이션 내, 즉 같은 계층에서 수평적인 분리라고 볼 수 있습니다.  
+하지만 트랜잭션의 추상화는 이와는 다릅니다. 애플리케이션의 비지니스 로직과 그 하위에서 동작하는 로우레벨의 트랜잭션 기술이라는 다른 계층의 특성을 갖는 코드를 분리했습니다. 수직적인 분리 입니다.  
+
+||||
+|--|--|--|
+|애플리케이션 계층|UserService|UserDao|
+|서비스 추상화 계층 |TransactionManager |DataSource |
+|기술 서비스 계층| JDBC, JTA, JNDI, WAS, ...|
+
+수평적(애플리케이션 로직의 종류), 수직적(로직과 기술) 모두 결합도가 낮으며 서로 영향을 주지않고 자유롭게 확장될 수 있는 구조를 스프링 DI가 책임을 집니다.  
+**DI가 없었다면 인터페이스를 도입해서 추상화를 했더라도, 적지않은 코드 사이의 결합이 남아있게 됩니다.  **
+바로 위의 new DataSoruceTransactionManager()라는 구체적인 의존 클래스 정보가 드러나는 코드가 존재할 때를 보면 로우레벨의 변화가 있을 때마다 비즈니스 로직을 담은 코드의 수정이 발생합니다. 하나를 수정하면 여러곳을 수정해야 합니다.  
+
+이런 적절한 분리가 가져오는 특징은 단일 책임 원칙(SRP)으로 설명할 수 있습니다.
+
+> Single Responsibility Principle : 하나의 모듈은  한 가지 책임을 가져야 한다. 하나의 모듈이 바뀌는 이유는 한 가지여야 한다.
+
+UserSerivce에 JDBC Connection 메소드를 직접 이용하는 트랜잭션 코드가 들어있을 때를 생각해보면, 두가지 책임을 갖고, 코드가 수정되는 이유가 두가지 이유라는 뜻입니다.
+
+결국 객제치향 설계는 인터페이스를 도입하고 이를 DI로 연결하며 단일 책임 원칙과 개방 폐쇄 원칙을 잘 지키고, 낮은 결합도(서로 영향을 주지않음)와 높은 응집도(단일 책임 집중)가 나오는 코드 입니다. 이런 과정에서 수많은 디자인 패턴이 저굥되기도 합니다.  
+지금까지 발전시켜온 코드를 보면 DI가 빠진 적이 없습니다. 이토록 스프링을 DI 프레임워크라고 부르는 이유는 DI를 활용해서 자바 엔터프라이즈 기술의 많은 문제를 해결하는 데 적극적으로 활용하고 있기 떄문입니다.  
+
+### 4. 메일 서비스 추상화
+고객으로부터 새로운 요청이 들어왔습니다. 레벨이 업그레이드 된 사용자에게는 안내 메일을 발송해달라는 것입니다. 먼저 User에 email 필드를 추가하고, UserService의 upgradeLevels()에 메일 발송 기능을 추가합니다.
+#### 4-1. JavaMail을 이용한 메일 발송 기능
+자바에서 메일을 발송할 떄는 표준 기수린 javaMail을 사용합니다. javax.mail 패키지에서 제공하는 이메일 클래스입니다. 전형적인 코드이므로 생략합니다.
+
+#### 4-2. JavaMail이 포함된 코드의 테스트
+엄밀히 말해서 메일 발송 테스트란 불가능합니다. 메일이 정말 잘 도착헀는지를 확인하지 못합니다. 기껏해야 메일 발송용 서버에 별문제 없이 전달됐음을 확인할 뿐입니다. 물론 메일 서버는 충분히 테스트된 시스템입니다.  
+또, 테스트용으로 사용할 메일 서버는 서버에 부담을 줄 수 있으므로 테스트용으로 따로 준비된 메일 서버를 이용합니다.
+따라서 메일 테스트를 한다고 매번 메일 수신 여부를 확인할 필요는 없고, 테스트용 메일 서버 까지만 잘 전송되는지 확인하면 됩니다.  
+
+우리는 SMTP라는 검증된 프로토콜을 믿은 것처럼, JavaMail에서도 적용할 수 있습니다. JavaMail API를 통해 요청이 들어간다는 보장이 있다면 굳이 테스트 할 때 마다 JavaMail을 직접 구동할 필요가 없습니다. JavaMail이 동작하면 외부의 메일 서버와 네트워크로 연동하고 전송하는 부하가 큰 작업이 일어나기 떄문입니다. 마찬가지로 테스트용 JavaMail을 준비합니다.  
+
+#### 4-3. 테스트를 위한 서비스 추상화
+그런데 한 가지 심각한 문제가 있습니다. JavaMail은 확장이나 지원이 불가능하도록 만들어진 API입니다. JavaMail에서는 Session이라는 오브젝트로 메일 메시지를 생성 하고 전송할 수 있습니다. 이 클래스는 상속이 불가능한 final 클래스에 생성자가 모두 private로 되어 있습니다.  
+스프링은 이 문제를 해결하기 위해서 JavaMail에 대한 추상화 기능을 제공합니다. MailSender 인터페이스 입니다.
+
+```java
+public interface MailSender{
+	void send(SimpleMailMessage simpleMessage) throws MailException;
+	// 이 인터페이스는 SimpleMailMessage 인터페이스를 구현한 클래스에 담긴 메일 메시지를 전송하는 메소드로만 이루어져 있습니다.
+	// 기본적으로 JavaMailSenderImple 클래스를 이용하면 됩니다. 이 클래스는 JavaMail API를 이용합니다.
+}
+
+// MailSender를 이용한 코드
+private void sendUpgradeEmail(User user){
+	JavaMailSenderImpl ms = new JavaMailSenderImple();
+	// 직접 JavaMailSenderImpl을 사용하고 있습니다.
+	// MailSender 를 구현한 클래스
+	ms.setHost("mail.naver.com");
+
+	SimpleMailMessage mm = new SimpleMailMessage();
+	mm.setTo();
+	mm.setFrom();
+	...
+
+	ms.send(mm);
+}
+```
+
+try/catch 블록은 MailException 런타임 예외로 포장하기에 만들지 않아도 됩니다.  
+JavaMailSenerImpl은 내부적으로 JavaMail API를 이용해 메일을 전송합니다.  
+JavaMail API를 사용하는 JavaMailSenderImpl 오브젝트를 코드에서 직접 사용하기 떄문에 JavaMail API를 사용하지 않는 테스트용 오브젝트로 대체할 수 없습니다. DI를 도입합니다.
+
+```java
+public class UserService{
+	...
+	private MailSender ms;
+	// JavaMailSenderImpl 이 구현한 인터페이스 입니다.
+	// DI를 통해 테스트를 수행할때는 JavaMail을 사용하지 않고, 운영시에는 JavaMail을 사용하게 합니다.
+
+	public void setMailSender(...){...}
+
+	public void sendUpgradeEmail(User user){
+		// DI받을 것이므로 메일 발송 호스트를 설정하는 코드도 제거합니다.
+		SimpleMailMessage mm = new ...
+		mm.setTo();
+		...
+		this.mailSender.send(mm);
+	}
+}
+// xml
+<bean id="userSerivce">
+	<property name="mailSender">
+
+<bean id="mailSender">
+	<property name="host">
+```
+
+이렇게 JavaMail을 직접 사용했을 떄와 동일하게 지정된 메일 서버로 메일 발송됩니다. 우리가 원하는건 JavaMail을 사용하지 않고, 테스트를 하는 것입니다.  
+mailSender 구현 빈 클래스를 만듭니다.
+
+```java
+public class DummyMailSender implements MailSender {
+	...
+	// 아무기능 없는 클래스입니다.
+}
+// xml 의 mailSender 빈의 클래스를 이 클래스로 지정합니다.
+
+public class UserServiceTest{
+	...
+	@Autowired
+	MailSender mailSender;
+	// 스프링 빈으로 등록됐으므로 자동으로 빈을 가져옵니다.
+
+	@Test
+	public void upgradeAllOrNothing()throws Exception{
+		...
+		testUserService.setMailSender(mailSender);
+		// 수동 DI를 하기 때문에 필드에 mailSender를 추가해야 합니다.
+	}
+}
+```
+
+일반적으로 서비스 추상화라고 하면 트랜잭션 처럼, 기능은 유사하나 사용방법이 다른 기술에 대해 추상 인터페이스와 일관성 있는 접근방식을 제공해 주는 것입니다. 반면에 JavaMail처럼 테스트를 하기 어렵게 설계된 API를 사용할 때도 유용하게 쓸 수 있습니다. JavaMail이 아닌 다른 메시지 API를 이용해 메일을 보내야 해도, 해당 기술의 API를 이용하는 MailSender ㅜ현 클래스를 만들어서 DI해주면 됩니다.
+
+|||
+|--|--|
+|애플리케이션 계층 |UserService |
+|추상화 계층 |MailSender, 구현 클래스들 |
+|메일 서비스 계층 |JavaMail |
+
+아직 부족한것이 하나있습니다. 바로 메일 발송 작업에 트랜잭션 개념이 빠져있습니다. 이를 해결하기 위해서는 업그레이드할 사용자를 발견했을 때 마다 보내지 않고, 별도로 목록에 저장해 두었다가 commit()이 실행되면 한번에 메일을 전송하거나, 다른 방법으로 MailSender를 확장해서 메일 전송에 트랜잭션 개념을 적용한 클래스를 만드는 것입니다. 이 클래스는 업그레이드 작업 이전에 새로운 메일 전송 작업 시작을 알려주고, send()를 호출해도 메일을 발송하지 않고 저장해두었다가 업그레이드 작업이 Commit()되면 저장된 메일을 모두 발송합니다.  
+두 가지 방법에 쓴 전략이 비슷하지만 전자는 비지니스 로직과 발송에 트랜잭션을 적용하는 부분이 섞이게 됩니다.  
+
+#### 4-4. 테스트 대역
+서비스 추상화란 이렇게 원활한 테스트만을 위해서도 충분한 가치가 있습니다. 테스트에서 JavaMail로 메일을 직접 발송했다면 테스트는 매우 불편해집니다. XML설정으로 DB를 테스트용과 운영용으로 분리시킨 것도 같은 맥락입니다.  
+이처럼 테스트 대상이 되는 오브젝트가 또 다른 오브젝트에 의존하는 일은 매우 흔합니다. UserSerivce는 이미 DI를 통해 주입받는 오브젝트만 세가지 입니다. 이렇게 하나의 오브젝트가 사용하는 오브젝트들을 의존(협력) 오브젝트라고 부릅니다.  
+
+테스트용으로 사용되는 의존 오브젝트들을 테스트 대역(Test Double)이라고 합니다. 대표적인 테스트 대역은 테스트 스텁(test stub)이 있습니다. 테스트 스텁의 간단한 예는 우리가 만든 DummyMailSender 입니다. 아무 일도 행하지 않는 DummyMailSender와 달리 스텁에 미리 테스트 중에 필요한 정보를 리턴해주도록 만들 수 있습니다. 혹은 스텁에서 강제로 예외를 발생시켜 대상 오브젝트가 어떻게 예외상황에 대처하는지 테스트에 적용할 수도 있습니다.  
+
+이런 간접적인 도움을 주는 개념과 달리 어떤 테스트 대역은 테스트 과정에 적극적으로 참여합니다. 스텁을 이용하면 간접적인 입력 값을 지정할 수도있고, 간접적인 출력 값을 받게 할 수도 있습니다.  
+테스트 대상 오브젝트의 메소드가 스텁으로 넘기는 값과 출력 값에 대한 검증할 하고싶다면 assertThat()으로 검증하는 것은 불가능합니다.  
+이런 경우에는 테스트 대상 오브젝트와 의존 오브젝트 사이에서 일어나는 일을 검증할 수 있도록 설계된 목 오브젝트(mock object)를 사용해야 합니다.
+
+> 목 오브젝트 : 스텁처럼 테스트 오브젝트가 정상적으로 실행되게 도와주면서, 테스트 오브젝트와 자신의 사이에서 일어나는 내용을 저장해뒀다가 테스트 결과를 검증하는 데 활용할 수 있게 해줍니다. 사실상 검증만 제외하면 스텁과 마찬가지입니다.
+
+목 오브젝트를 UserServiceTest에 적용해봅니다. 트랜잭션 기능을 테스트하려 했던 upgradeAllOrNothing() 테스트는 메일이 전송 됐는지 여부는 관심의 대상이 아니기에, DummyMailSender가 어울립니다. 반면 사용자 레벨 업그레이드 결과를 확인하는 upgradeLevels() 테스는 메일 전송 자체에 대해 검증할 필요가 있습니다. 우리는 JavaMail 서비스 추상화를 적용해놨기 떄문에, 목 오브젝트를 만들어서 메일 발송 여부를 확인할 수 있습니다. 물론 목 오브젝트에 메일 발송 기능은 없습니다. 대신 테스트 대상이 넘겨주는 출력 값을 보관하는 기능을 추가합니다. 한정적으로 사용 될 것이기에 내부 클래스로 정의합니다.
+```java
+static class MockMailSender implements MailSender {
+		private List<String> requests = new ArrayList<String>();	
+		
+		public List<String> getRequests() {
+			return requests;
+		}
+		// UserService로 부터 전송 요청을 받은 메일 주소들을 저장해두고 이를 읽을 수 있게 메소드를 만듭니다.
+
+		public void send(SimpleMailMessage mailMessage) throws MailException {
+			requests.add(mailMessage.getTo()[0]);  
+		}
+		// 전송 요청을 받은 이메일 주소를 저장합니다. 간단한 테스트를 위해서 첫 번쨰 수신자 메일 주소만 저장합니다.
+		// 메일을 보내는 기능은 없습니다.
+
+		public void send(SimpleMailMessage[] mailMessage) throws MailException {
+		}
+	}
+
+// 이제 이를 이용해 upgradeLevels() 테스트를 수정합니다.
+	@Test 
+	@DirtiesContext	// 컨텍스트의 DI 설정을 변경하는 테스트라는 것을 의미합니다.
+	public void upgradeLevels() {
+		userDao.deleteAll();
+		for(User user : users) userDao.add(user);
+		
+		MockMailSender mockMailSender = new MockMailSender();  
+		userService.setMailSender(mockMailSender);  
+		// 목 오브젝트를 의존 오브젝트로 주입합니다.
+		
+		userService.upgradeLevels();
+		// 메일을 보내게 되면
+		
+		checkLevelUpgraded(users.get(0), false);
+		checkLevelUpgraded(users.get(1), true);
+		checkLevelUpgraded(users.get(2), false);
+		checkLevelUpgraded(users.get(3), true);
+		checkLevelUpgraded(users.get(4), false);
+		// MockMailSender의 리스트에 메일 발송 결과가 저장됩니다.
+		// 업그레이드 결과에 대한 검증입니다.
+		
+		List<String> request = mockMailSender.getRequests();  
+		assertThat(request.size(), is(2));  
+		// 업그레이드 대상은 두번째와 네번재 사용자 두명입니다.
+		assertThat(request.get(0), is(users.get(1).getEmail()));
+		// 리스트의 첫 번째 메일 주소와 두 번째 사용자의 메일을 비교합니다.  
+		assertThat(request.get(1), is(users.get(3).getEmail()));  
+		// 목 오브젝트에 저장된 리스트를 getRequests()로 불러와 업그레이드 대상과 일치하는지 확인합니다.
+	}
+```
+
+이렇게 레벨 업그레이드가 일어날 때 DB의 내용 변경과, 메일 발송 여부를 검증했습니다.
+
+### 5. 정리
+- 비지니스 로직을 담은 코드는 데이터 엑세스 로직을 담은 코드와 분리해야한다(수직적)
+- 비지니스 로직 코드 또한 내부적으로 책임과 역할에 따라서 메소드로 정리돼야 한다.
+- 이를 위해서는 DAO의 기술 변화에 서비스 계층의 코드가 영향을 받지 않도록 인터페이스와 DI를 활용해 결합도를 낮춘다.
+- DAO를 사용하는 비즈니스 로직에는 트랜잭션이 필요하다.
+- 트랜잭션의 시작과 종료를 지정하는 일을 트랜잭션 경계설정 이라 한다.
+- 트랜잭션 경계 설정은 주로 비즈니스 로직 안에서 일어난다.
+- 트랜잭션 정보를 직접 DAO에 전달하기 보단 스프링이 제공하는 트랜잭션 동기화 기법을 활용한다.
+- 트랜잭션 경계설정 코드가 비즈니스 로직 코드에 영향을 주지 않게 하려면 스프링이 제공하는 트랜잭션 서비스 추상화 기술을 이용한다.
+- 서비스 추상화는 로우레벨의 트랜잭션 기술과 API의 변화에 상관 없이 일관된 API를 가진 추상화 계층을 도입한다.
+- 서비스 추상화는 JavaMail같은 테스트 하기 어려운 기술에도 적용할 수 있다.
+- 테스트 대상이 사용하는 의존 오브젝트를 대채하는 오브젝트를 테스트 대역이라고 한다.
+- 테스트 대역은 간접적인 정보를 제공하기도 한다.
+- 테스트 대역 중에서 테스트 대상에게서 받은 정보를 검증할 수 있도록 설계된 것을 목 오브젝트라 한다.
