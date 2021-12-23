@@ -230,7 +230,7 @@ public class UserServiceTest {
 		checkLevelUpgraded(users.get(4), Level.GOLD);
 ```
 
-#### 5-4. UserService.add()
+#### 1-4. UserService.add()
 아직 남은 부분이 있습니다. 처음 가입하는 사용자는 기본적으로 BASIC 레벨이어야 한다는 것입니다. 이 로직을 담기위해서 적합한 부분은 UserService입니다.  
 UserService에도 add()를 만들어두고 사용자가 등록될 때 적용할 만한 비지니스 로직을 담당하게 합니다.  
 테스트 케이스는 레벨이 미리 정해진 경우와 레벨이 비어있는 경우로 두고 진행합니다.  
