@@ -815,3 +815,294 @@ InvocationHandler의 한계인 하나만으로 여러 개의 부가기능을 제
 타깃 오브젝트에 적용하는 부가기능을 담은 오브젝트를 스프링에서는 adivce라고 부릅니다. 꼭 기억해 두도록 합니다.  
 또, 기존에 프록시를 만들 때 반드시 제공해야 했던 정보가 Hello 인터페이스였습니다. 그래야만 다이내믹 프록시 오브젝트의 타입을 결정할 수 있었습니다. 하지만 ProxyFactoryBean을 사용하니 프록시가 구현해야 하는 Hello 인터페이스 코드가 사라졌습니다.  
 이는, setInterfaces()를 이용해 지정해 줄 수도 있지만, ProxyFactoryBean은 자동검출 기능을 이용해 타깃 오브젝트가 구현하고 있는 인터페이스 정보를 알아낼 수 있습니다.  
+
+MethodInterceptor는 여러 부가기능이 있지만, InvocationHandler에서 사용했던 pattern이라는 래퍼런스로 메소드를 선별하는 기능은 불가능합니다. 그 이유는 여러 프록시가 공유하게 만들어져 타깃 정보를 갖고 있지 않기 때문입니다. 판별 기준이 프록시마다 다를 수 있기에 특정 프록시에만 적용되는 패턴을 넣으면 문제가 됩니다.  
+
+이 문제를 해결하려면 우리가 해왔던 분리를 이용하면 됩니다. MethodInterceptor에는 재사용 가능한 순수한 부가기능 제공 코드만 남겨두고 분리하는 것입니다. 대신 부가기능 적용 메소드를 선택하는 기능은 프록시에 넣습니다. 물론 프로시는 대리인역할을 하는것이 존재 이유므로, 선별 기능은 프록시에서 다시 분리하는 것이 낫습니다.  
+
+기존의 방식에서 메소드를 판별하던 방식을 살펴봅니다.  
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW-2UhOuhneyLnCDtjKnthqDrpqwg67mIXSAtLT587IOd7ISxfCBCW-uLpOydtOuCtOuvuSDtlITroZ3si5xdXG4gICAgQiAtLT5866qo65OgIOuplOyGjOuTnCDsmpTssq18IENbSW52b2NhdGlvbkhhbmRsZXIv67aA6rCA6riw64qlK-uplOyGjOuTnOyEoOuzhF1cbiAgICBDIC0tPnzsnITsnoR8IO2DgOq5gyIsIm1lcm1haWQiOnsidGhlbWUiOiJkYXJrIn0sInVwZGF0ZUVkaXRvciI6ZmFsc2UsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)](https://mermaid.live/edit#eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW-2UhOuhneyLnCDtjKnthqDrpqwg67mIXSAtLT587IOd7ISxfCBCW-uLpOydtOuCtOuvuSDtlITroZ3si5xdXG4gICAgQiAtLT5866qo65OgIOuplOyGjOuTnCDsmpTssq18IENbSW52b2NhdGlvbkhhbmRsZXIv67aA6rCA6riw64qlK-uplOyGjOuTnOyEoOuzhF1cbiAgICBDIC0tPnzsnITsnoR8IO2DgOq5gyIsIm1lcm1haWQiOiJ7XG4gIFwidGhlbWVcIjogXCJkYXJrXCJcbn0iLCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)
+
+그림을 보면 부가기능을 가진 InvocationHandler가 타깃과 메소드 선정 알고리즘 코드에 의도하고 있는 것을 알 수 있습니다. 만약 타깃이 달라지거나 메소드 선정 방식이 다르면 InvocationHandler를 여러 프록시가 공유할 수 없습니다. DI를 통해 타깃과 선별기능을 분리한다 해도, 한번 빈으로 등록된 InvocationHandler **오브젝트**는, 오브젝트로서 특정 타깃을 위한 프록시에만 제한됩니다. 그래서 빈으로 등록하는 대신 팩토리빈 내부에서 매번 생성하도록(콜백처럼) 만들었습니다. 따라서 변경이나 확장이 필요하면 팩토리 빈 내의 프록시 생성 코드를 직접 변경해야 합니다. 결국 확장에 열려있지 못한 OCP의 원칙에 어긋났습니다.  
+이제 스프링의 ProxyFactoryBean 구조를 봅니다.  
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW1Byb3h5RmFjdG9yeUJlYW5dIC0tPnzsg53shLF8IEJb64uk7J2064K066-5IO2UhOuhneyLnF1cbiAgICBCIC0tPnwxLuq4sOuKpeu2gOyXrCDrjIDsg4Eg7ZmV7J24fCBDW-2PrOyduO2KuOy7ty_rqZTshozrk5wg7ISg7KCVIOyVjOqzoOumrOymmF1cbiAgICBCIC0tPnwyLuyEoOygleuQnCDrqZTshozrk5zrp4wg7JqU7LKtfCBEW-yWtOuTnOuwlOydtOyKpC9NZXRob2RJbnRlcmNlcHRvci_rtoDqsIDquLDriqVdXG4gICAgRCAtLT58My58IEVbSW52b2NhdGlvbuy9nOuwsV0gLS0-fDQu7JyE7J6EfCBGW-2DgOq5g10iLCJtZXJtYWlkIjp7InRoZW1lIjoiZGFyayJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid.live/edit#eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW1Byb3h5RmFjdG9yeUJlYW5dIC0tPnzsg53shLF8IEJb64uk7J2064K066-5IO2UhOuhneyLnF1cbiAgICBCIC0tPnwxLuq4sOuKpeu2gOyXrCDrjIDsg4Eg7ZmV7J24fCBDW-2PrOyduO2KuOy7ty_rqZTshozrk5wg7ISg7KCVIOyVjOqzoOumrOymmF1cbiAgICBCIC0tPnwyLuyEoOygleuQnCDrqZTshozrk5zrp4wg7JqU7LKtfCBEW-yWtOuTnOuwlOydtOyKpC9NZXRob2RJbnRlcmNlcHRvci_rtoDqsIDquLDriqVdXG4gICAgRCAtLT58My58IEVbSW52b2NhdGlvbuy9nOuwsV0gLS0-fDQu7JyE7J6EfCBGW-2DgOq5g10iLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGFya1wiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
+
+스프링은 부가기능을 제공하는 오브젝트를 advice라 칭하고, 메소드 선정 알고리즘을 담은 오브젝트를 포인트컷이라고 부릅니다. 어드바이스와 포인트컷 모두 프록시에 DI로 주입해 공유 가능한 싱글톤 빈으로사용됩니다.  
+포인트컷은 Pointcut인터페이스를 구현해서 만듭니다. 어드바이스는 기존의 MethodInterceptor에서 부가기능만 분리한 오브젝트로 타깃에 의존하지 않는 일종의 템플릿으로 구성돼있습니다.  
+어드바이스가 부가기능을 부여하는 중에 타깃 메소드의 호출이 필요하면 프록시로부터 전달받은 콜백 오브젝트(MethodInterceptor 타입)의 proceed()를 호출하면 됩니다.  
+
+**타깃 오브젝트에 대한 래퍼런스를 갖고 직접 타깃을 호출하는 것은 Invocation 콜백의 역할입니다.** 재사용 가능한 기능을 만들어 두고(어드바이스), 바뀌는 부분(콜백 오브잭트와 메소드 호출 정보)만 외부에서 주입해서 작업 흐름(부가기능 부여, 어드바이스)중에 사용하도록 하는 템플릿/콜백 구조입니다.  
+
+어드바이스와 포인트 컷을 프록시로부터 독립시켜 DI를 사용하게 함으로, 프록시와 ProxyFactoryBean의 변경 없이 부가기능이나 메소드 선정 알고리즘만 바꿔 사용 할 수 있게 됩니다.
+
+지금까지의 내용을 코드로 학습해봅니다.
+
+```java
+// 전에 만든 UppercaseAdvice를 사용하는 테스트 코드입니다.
+// 스프링이 제공하는 NameMatchMethodPointcut을 이용합니다.
+@Test
+public void pointcutAdvisor(){
+	ProxyFactoryBean pfBean = new ProxyFactoryBean();
+	pfBean.setTarget(new HelloTarget);
+
+	NameMatchMethodPointcut pointcut = new NameMatchMethodPointcut();
+	// 메소드이름을 비교하는 선정 알고리즘/ 포인트컷
+	pointcut.setMappedName("sayH*");	// sayH로 시작하는 모든 메소드를 선택
+
+	pfBean.addAdvisor(new DefaultPointcutAdviser(pointcut, new UppercaseAdvice()));
+	// 포인트컷과 어드바이스를 Advisor로 묶어서 추가합니다.
+
+	Hello proxiedHello = (Hello)pfBean.getObject();
+
+	assertThat(proxiedHello.sayHello("Hunny"), is("HELLO HUNNY"));
+	assertThat(proxiedHello.sayHi("Hunny"), is("HI HUNNY"));
+	assertThat(proxiedHello.sayThanYou("Hunny"), is("Thank You HUNNY"));
+	// 포인트 컷 기준에 맞지 않으므로 대문자 변경이 되지 않아야 합니다.
+}
+```
+
+포인트 컷이 없을 때는 addAdvice()로 어드바이스만 등록했지만, 이번에는 포인트컷을 어드바이스와 묶어서 addAdvisor()로 추가했습니다. ProxyFactoryBean에는 여러 개의 어드바이스와 여러 개의 포인트컷이 추가될 수 있기 떄문입니다. 포인트컷과 어드바이스를 따로 등록하면 어떤 부가기능에 대해 어떤 선정을 적용할지 모르게 됩니다. 이렇게 묶은 오브젝트를 어드바이저 라고 부릅니다.  
+
+> 어드바이저 = 포인트컷(메소드 선정 알고리즘) + 어드바이스(부가기능)	반드시 외워두도록 합니다.
+
+#### 4-2. ProxyFactoryBean 적용
+우리가 구현했던 다이내믹 프록시인 TxProxFactoryBean을 ProxyFactoryBean으로 바꿔봅니다. transactionHandler의 코드에서 타깃과 메소드 선정 부분을 제거하고, MethodInterceptor를 구현한 adivce를 구현합니다.
+
+```java
+...
+public class TransactionAdvice implements MethodInterceptor{
+	PlatFormTransactionManager transactionManager;
+
+	public void setTransactionManager(...){
+		...
+	}
+
+	public Object invoke(MethodInvocation invocation) throws Throwable{
+		// 콜백 오브젝트를 담당하는 invocatin입니다. 타깃의 정보를 알고 있습니다.
+		TransactionStatus status = this.transactionManager.getTransaction(new DefalutTransactionDefinition());
+		try{
+			Object ret = invocation.proceed();
+			// 콜백을 호출해서 타깃의 메소드를 실행합니다.
+			// 타깃 메소드 호출 전후로 부가기능을 넣을 수 있습니다.
+			this.transactionManager.commit(status);
+			return ret;
+		}catch(RuntimeException e){
+			// Method와 달리 MethodInvocation은 예외가 포장되지 않습니다.
+			롤백
+		}
+
+	}
+}
+
+//xml
+<bean id="transactionAdvice">
+	<property ...>
+<bean id="transactionPointcut" class="org.springframework.aop.support.NameMatchMethodPointcut">
+	<property name="mappedName" value="upgrade*" />
+	// 포인트 컷은 스프링이 제공하는 클래스를 사용할 것이므로 별도의 클래스 없이 빈설정으로 사용합니다.
+<bean id="transactionAdvisor" class="org.springframework.aop.support.DefalutPointcutAdvisor">
+	<property name="advice" ref="transactionAdvice" />
+	<property name="pointcut" ref="transactionPointcut" />
+	// 어드바이저 역시 빈설정으로 사용합니다.
+
+<bean id="userService" class="org.springframework.aop.famework.ProxyFactoryBean">
+// userService 빈을 ProxyFactoryBean으로 설정합니다.
+	...
+	<property name="interceptorNames"> //어드바이스와 어드바이저가 list로 동시에 등록 가능한 프로퍼티명입니다.
+		<list>	//list를 사용하므로, ref애트리뷰트이지만 value값을 사용합니다.
+			<value>transactionAdvisor</value>
+			// 한개 이상의 value 태그가 가능합니다.
+```
+
+마지막으로 테스트 검증도 해야합니다. UserService가 제공하는 기능의 테스트는 프록시 구현이나 설정방식에 영향을 받지 않지만,(메소드 선정도 upgrade로 시작하는 것으로 제한했습니다.)  
+upgradeAllOrNothing()만큼은 프록시의 부가기능인 트랜잭션 적용을 테스트 해야하므로 테스트코드를 수정합니다.
+
+```java
+@Test
+@DirtiesContext	//컨텍스트 설정을 여전히 변경하게 됩니다.
+public void upgradeAllOrNothing(){
+	TestUserService testUserService = new TestUserService(users.get(3).getId());
+	testUserService.setUserDao(userDao);
+	testUserService.setMailSender(mailSender);
+
+	ProxyFactoryBean txProxyFactoryBean = context.getBean("$userService", ProxyFactoryBean.class);
+	// 이곳이 컨텍스트 설정을 변경합니다. userService 빈이 xml설정과 다르게 스프링의 ProxyFactoryBean 그자체로 변경 했습니다.
+	// &를 안붙이면 프록시팩토리빈으로 만들어진 userService타입의 오브젝트가 리턴됩니다.
+	// 선언된 타입을 기존에 만들었던 TxProxyFactoryBean에서 스프링의 ProxyFactoryBean으로 변경했습니다.
+	txProxyFactoryBean.setTarget(testUserService);
+	UserService txUserService = (UserService)txProxyFactoryBean.getObject();
+	// getObject()로 프록시를 가져옵니다.
+}
+```
+
+ProxyFactoryBean은 스프링의 DI, 템플릿/콜백, 서비스 추상화 등의 기법이 적용된 것입니다. 그덕에 여러 프록시가 공유할 수 있고 확장할수 있는 독립성을 가졌습니다. UserService외에 새로운 비즈니스 로직 클래스에서도 TransactionAdvice를 그대로 사용할 수 있습니다. 부가기능 변경이나 메소드 선정 방식의 변경, 확장이 필요하다면, xml설정만 변경하면 됩니다.  
+
+하나의 어드바이스(부가기능)을 이용해 2가지 방식으로 구현하는 경우를 그림으로 표현합니다.  
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW1Byb3h5RmFjdG9yeUJlYW5dIC0tPnzri7Tqs6DsnojsnYx8IEJbQSBBZHZpc29yXVxuICAgIEIgLS0-fOuLtOqzoOyeiOydjHwgQ1tBIHBvaW50Y3V0IC8g66mU7IaM65OcIOyEoOuzhF1cbiAgICBCIC0tPnzri7Tqs6DsnojsnYx8IERbTWV0aG9kSW50ZXJjZXB0b3Ig6rWs7ZiEIC8gQWR2aWNlIC8g67aA6rCA6riw64qlIC_thZztlIzrpr9dXG4gICAgQSAtLT58QSBBZHZpc29y66W8IERJ7ZW07IScIOq1rO2YhO2VmOuKlCDtgbTrnpjsiqR8IEVbVXNlclNlcnZpY2UgLyDri6TsnbTrgrTrr7kg7ZSE66Gd7IucIC8g7YOA6rmDIOyduO2EsO2OmOydtOyKpOydmCDtg4DsnoXsnLzroZwg7J6Q64-ZIOyDneyEsV1cbiAgICBBIC0tPnztg4DquYMg7KCV67O0IOyghOuLrHwgR1xuICAgIEQgLS0-fOy9nOuwsXwgR1tNZXRob2RJbnZvY2F0aW9uIC8gaW52b2tl66mU7IaM65Oc7J2YIO2MjOudvOuvuO2EsCAvIOy9nOuwsV1cbiAgICBHIC0tPnzsnITsnoR8IEZb7YOA6rmDIOyYpOu4jOygne2KuF1cbiAgICBIW1Byb3h5RmFjdG9yeUJlYW5dIC0tPnxCIEFkaXZvc3LrpbwgREntlbTshJwg6rWs7ZiE7ZWY64qUIO2BtOuemOyKpHwgSVtCIFNlcnZpY2VdXG4gICAgSCAtLT5864u06rOgIOyeiOydjHwgSltCIEFkdmlzb3JdXG4gICAgSiAtLT5864u06rOgIOyeiOydjHwgRFxuICAgIEogLS0-fOuLtOqzoCDsnojsnYx8IEtbQiBwb2ludGN1dF1cbiAgICBIIC0tPnztg4DquYMg7KCV67O0IOyghOuLrHwgR1xuICAgIEEgLS0-fOuLtOqzoCDsnojsnYx8IEZcbiAgICBIIC0tPnzri7Tqs6Ag7J6I7J2MfCBGIiwibWVybWFpZCI6eyJ0aGVtZSI6ImRhcmsifSwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)](https://mermaid.live/edit#eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW1Byb3h5RmFjdG9yeUJlYW5dIC0tPnzri7Tqs6DsnojsnYx8IEJbQSBBZHZpc29yXVxuICAgIEIgLS0-fOuLtOqzoOyeiOydjHwgQ1tBIHBvaW50Y3V0IC8g66mU7IaM65OcIOyEoOuzhF1cbiAgICBCIC0tPnzri7Tqs6DsnojsnYx8IERbTWV0aG9kSW50ZXJjZXB0b3Ig6rWs7ZiEIC8gQWR2aWNlIC8g67aA6rCA6riw64qlIC_thZztlIzrpr9dXG4gICAgQSAtLT58QSBBZHZpc29y66W8IERJ7ZW07IScIOq1rO2YhO2VmOuKlCDtgbTrnpjsiqR8IEVbVXNlclNlcnZpY2UgLyDri6TsnbTrgrTrr7kg7ZSE66Gd7IucIC8g7YOA6rmDIOyduO2EsO2OmOydtOyKpOydmCDtg4DsnoXsnLzroZwg7J6Q64-ZIOyDneyEsV1cbiAgICBBIC0tPnztg4DquYMg7KCV67O0IOyghOuLrHwgR1xuICAgIEQgLS0-fOy9nOuwsXwgR1tNZXRob2RJbnZvY2F0aW9uIC8gaW52b2tl66mU7IaM65Oc7J2YIO2MjOudvOuvuO2EsCAvIOy9nOuwsV1cbiAgICBHIC0tPnzsnITsnoR8IEZb7YOA6rmDIOyYpOu4jOygne2KuF1cbiAgICBIW1Byb3h5RmFjdG9yeUJlYW5dIC0tPnxCIEFkaXZvc3LrpbwgREntlbTshJwg6rWs7ZiE7ZWY64qUIO2BtOuemOyKpHwgSVtCIFNlcnZpY2VdXG4gICAgSCAtLT5864u06rOgIOyeiOydjHwgSltCIEFkdmlzb3JdXG4gICAgSiAtLT5864u06rOgIOyeiOydjHwgRFxuICAgIEogLS0-fOuLtOqzoCDsnojsnYx8IEtbQiBwb2ludGN1dF1cbiAgICBIIC0tPnztg4DquYMg7KCV67O0IOyghOuLrHwgR1xuICAgIEEgLS0-fOuLtOqzoCDsnojsnYx8IEZcbiAgICBIIC0tPnzri7Tqs6Ag7J6I7J2MfCBGIiwibWVybWFpZCI6IntcbiAgXCJ0aGVtZVwiOiBcImRhcmtcIlxufSIsInVwZGF0ZUVkaXRvciI6ZmFsc2UsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)
+
+그림을 보면 알 수 있듯이, ProxyFactoryBean(스프링 설정의 빈)이 구현한 Service 프록시(실제 빈 오브젝트)들은 독립적입니다. 타깃 오브젝트들은 ProxyFactoryBean의 xml 설정에 따라 결정됩니다. 타깃 오브젝트(userServiceImpl / 변하지 않는 기능)의 모든 메소드를 구현하는 userService타입의 프록시 클래스를 ProxyFactoryBean이 만들어 줍니다.
+
+### 5. 스프링 AOP
+#### 5-1. 자동 프록시 생성
+타깃 코드는 깔끔한 채로 남아있고, 부가기능은 싱글톤으로 모든 타깃과 메소드에 재사용 되고(원래는 타깃 오브젝트마다 새로 만들어야 했습니다.), 타깃의 메소드 선별 방식도 분리했습니다.  
+하지만 아직 한 가지 문제가 있습니다. 바로 부가기능 적용이 필요한 타깃 오브젝트마다 비슷한 내용의 ProxyFactoryBena 설정을 추가해야 하는 것입니다.  
+
+우리는 변하지 않는 재사용 가능한 부분과 바뀌는 부분을 분리한 템플릿/콜백 전략 패턴으로 중복을 제거했었고, 다이내믹  프록시라는 런타임 코드 자동생성 기법을 사용해 프록시 클래스를 만들어서 위임과 부가기능 코드를 중복되지 않게하는 두가지 중복 제거 방법을 보았습니다.  
+타깃으로의 위임과 부가기능 적용 대상 선별은 다이내믹 프록시에게 맡기고, 변하는 부가기능 코드(어드바이스)는 별도로 만들어서 프록시 팩토리에 DI로 제공하는 방법을 사용한 것입니다.  
+만약 타깃 빈의 목록을 제공하면 자동으로 각 타깃의 빈에 대한 프록시를 만들어준다면 xml설정 파일을 이용해 ProxyFactoryBean 프로퍼티 설정을 매번 추가할 필요가 없을테지만, 아쉽게도 불가능합니다.  
+
+OCP의 가장 중요한 요소는 유연한 확장입니다. 그래서 스프링은 스스로도 OCP의 가치를 따릅니다. 스프링이 제공하는 기능 중에서 변하지 않는 핵심적인 부분 외에는 대부분 **확장**할 수 있도록 확장 포인트를 제공합니다. 우리가 관심가질만한 확장 포인트는 BeanPostProcessor 인터페이스를 구현해서 만드는 빈 후처리기 입니다.  
+빈 후처리기란 스프링 빈 오브젝트로 만들어지고 난 후에, 빈 오브젝트를 다시 가공할 수 있게 합니다.  
+
+사용 방법은 간단합니다. 빈 후처리기 자체를 빈으로 등록합니다. 스프링은 빈 후처리기가 빈으로 등록되어 있으면 빈 오브젝트가 생성될 때마다 빈 후처리기에게 후처리 작업을 요청합니다.  
+이를 잘 이용하면 스프링이 생성하는 빈 오브젝트의 일부를 프록시로 포장해서 빈으로 대신 등록할 수도 있습니다.  
+
+DefaultAdvisorAutoProxyCreator는 스프링이 제공하는 빈 후처리기 입니다. 이름에서 알 수 있듯이 어드바이저를 이용한 자동 프록시 생성기입니다.  
+이 빈 후처리기는 빈으로 등록된 모든 어드바이저 안의 포인트컷을 이용해 스프링으로부터 전달받은 빈이 프록시 적용 대상인지 확인합니다.  
+적용 대상일 경우 내장된 프록시 생성기에게 전달받은 빈에 대한 프록시를 만들게 하고, 만들어진 프록시에 어드바이저를 연결해줍니다.  
+빈 후처리기는 원래 빈 오브젝트 대신 만들어진 어드바이저를 컨테이너에게 돌려줍니다. 컨테이너는 빈 후처리기가 돌려준 오브젝트를 빈으로 등록하고 사용합니다.  
+
+포인트 컷은 사실 메소드만 선별할 뿐 아니라 ClassFilter를 이용해 클래스 선별 기능도 갖고 있습니다. 두 기능을 모두 사용하면 먼저 클래스를 선별하고 메소드를 선별합니다.  
+ProxyFactoryBean에서 포인트컷은 타깃에 대한 정보가 있으므로 클래스를 선별할 필요가 없었지만, DefalutAdvisorAutoProxyCreator는 클래스와 메소드 선정 알고리즘을 모두 갖고있는 포인트컷과 어드바이스가 결합되어 있는 어드바이저가 등록되어있어야 합니다.  
+
+클래스를 선별하는 예시를 코드로 보겠습니다.
+```java
+@Test
+public void classNamePointcutAdvisor(){
+	NameMatchMethodPointcut classMethodPointcut = new NameMatchMethodPointcut(){
+		// 내부 익명 클래스 방식으로 클래스를 선별합니다.
+		public ClassFilter getClassFilter(){
+			return new ClassFilter(){
+				// 다시 내부 익명 클래스입니다.
+				@Override
+				public boolean matches(Class<?> clazz){
+					return clazz.getSimpleName().startsWith("HelloT");
+					// HelloT로 시작하는 클래스만 선정합니다.
+					// 걸러 지므로 부가기능이 제공 되지 않게됩니다.
+				}
+			};
+		}
+	};
+
+	classMethodPointcut.setMappedName("SayH*");	// 메소드 선별
+}
+```
+
+#### 5-2. DefaultAdvisorAutoProxyCreator의 적용
+이제 실제로 적용해봅니다. 새로운 클래스를 하나 만듭니다. NamedMatchMethodPoincut을 상속하고 classfilter를 정의합니다.
+
+```java
+public class NameMatchClassMethodPointcut extends NameMatchMethodPointcut {
+	public void setMappedClassName(String mappedClassName) {
+		this.setClassFilter(new SimpleClassFilter(mappedClassName));
+		// 프로퍼티로 받은 클래스 이름을 이용해 필터를 적용합니다.
+	}
+	
+	static class SimpleClassFilter implements ClassFilter {
+		String mappedName;
+		
+		private SimpleClassFilter(String mappedName) {
+			this.mappedName = mappedName;
+		}
+
+		public boolean matches(Class<?> clazz) {
+			return PatternMatchUtils.simpleMatch(mappedName, clazz.getSimpleName());
+			// 와일드 카드가 들어간 문자열 비교를 지원하는 스프링의 유틸리티 메소드 입니다.
+		}
+	}
+}
+//빈 후처리기를 빈으로 등록합니다.
+<bean class="org.springframework.aop.framework.autoproxy.DefalutAdvisorAutoProxyCreator" />
+// 다른 빈에서 참조될 필요가 없는 빈이라 id를 설정하지 않아도 됩니다.
+```
+
+이후 기존의 포인트컷 설정을 제거하고 새로 작성합니다.
+
+```java
+<bean id="transactionPointcut" class=NameMatchClassMethodPointcut 경로>
+	<property name="mappedClassName" value="*ServiceImpl" /> //클래스 이름 패턴
+	<property name="mappedName" value="*upgrade*">
+```
+
+어드바이스와 어드바이저는 변경 할 필요가 없습니다. 다만 어드바이저의 방식이 빈 후처리기가 돌려주는 포인트컷을 DI하도록 바뀌었습니다.  
+프록시를 도입하고 부터, 프록시에 DI돼 간접적으로 타깃으로 사용되야 했던 userServiceImpl 빈의 아이디를 userService로 돌려 놓을 수 있게 됐습니다.  
+더 이상 명시적인 프록시 팩토리 빈을 등록하지 않기 떄문입니다. 기존의 ProxyFactoryBean 빈 은 제거하고, userServiceImpl빈의 이름을 변경합니다.  
+
+이제 테스트를 변경합니다. **@Autowired를 이용해 컨텍스트에서 가져오는 userService빈은 UserServiceImpl이 아니라, 트랜잭션이 적용된 프록시여야 합니다.**  
+이를 검증하는 upgradeAllOrNothing() 테스트는 타깃을 코드에서 바꿔치기 했지만, 자동 프록시 생성기를 이용한 방법에서는 바꿔치기가 불가능합니다.  
+자동 프록시 생성기는 스프링 컨테이너에 종속적인 기법이라 예외상황을 위한 테스트 대상도 빈으로 등록해야 합니다. 또한, 자동 프록시 생성기의 선별로 걸러진 대상이기에 적용이 됐는지도 빈을 통해 확인해야 합니다. 내부 스태틱 클래스인 TestUserService를 빈으로 등록합니다.  
+
+문제는 내부 클래스라는 점과 클래스 이름 패턴이 *ServiceImpl로 되어있어서 TestUserService가 빈으로 등록되도 프록시 적용 대상에서 벗어납니다.  
+우선 이름을 TestUserServiceImpl로 변경하고, xml 설정에서는 UserServiceTest의 경로에 $TestUserServiceImpl을 붙여주면 됩니다.  
+
+```java
+static class TestUserServiceImpl extends UserServiceImpl{
+	private String id = "madnite1";	// 프록시 생성기에 의해 만들어진 빈이기 떄문에 픽스처를 사용할 수 없습니다.
+	// users(3)의 id값을 고정시킵니다.
+
+	protected void upgradeLevel(User user){
+		if(user.getId().equals(this.id)) throw new TestUserServiceException();
+		super.upgradeLevel(user);
+		// 트랜잭션이 적용되어 롤백되어야 합니다.
+		// 트랜잭션 코드가 없지만 어드바이스에 의해 부가기능이 부여된 프록시이므로 트랜잭션 기능이 있게됩니다.
+	}
+}
+<bean id="testUserService" class="UserServiceTest경로$TestUserServiceImpl" parent="userService" />
+// parent 애트리뷰트는 상속받은 클래스의 xml 설정 내용을 받아올 수 있습니다.
+// 별도의 userDao나 mailSender를 지정해주지 않아도 됩니다.
+
+// 이제 프록시 생성 메소드 대상인 upgradeAllOrNothing()을 수정합니다.
+
+public class UserServiceTest{
+	@Autowired
+	UserService userService;	// Impl
+	@Autowired
+	UserService testUserService;	// TestUserImpl
+	...
+
+	@Test	// 이제는 컨텍스트 빈 설정을 변경하지 않습니다.
+	public void upgradeAllOrNothing(){
+		userDao.deleteAll();
+		for(User user : users) userDao.add(user);
+
+		try{
+			this.testUserService.upgradeLevles();
+			fail("TestUserServiceException expeted");
+		}
+		...
+		// xml을 사용하면서 기존에 testUserService에 DI하는 코드가 사라졌고,
+		// ProxyFactoryBean자체를 가져와 타깃을 바꿔 주던 코드가 사라졌습니다.
+	}
+}
+```
+
+다시 한번 정리해 봅니다.  
+1. 자동 프록시 생성기인 DefalutAdvisorAutoProxyCreator는 xml에 등록된 빈 중에서 Advisor 인터페이스(포인트컷과 어드바이스를 담음)를 구현한 것을 모두 찾습니다.
+2. 모든 빈에 대해 빈이 생성 될 때 어드바이저 안에 포인트컷으로 프록시 적용 대상을 선정합니다.
+3. 해당 빈 클래스가 선정 대상이라면 프록시를 만들어 생성된 빈 대신 프록시 오브젝트를 돌려줍니다.
+4. 원래의 빈 오브젝트는 돌려준 프록시와 연결되어 프록시를 통해서만 접근 가능해집니다.
+5. 즉, 타깃 빈에 의존한다고 정의한(프로퍼티로 등록한) 다른 빈들은 프록시 오브젝트를 대신 DI 받게 됩니다.
+6. 원래 빈은 트랜잭션이 없는 클래스지만, 프록시는 자동 프록시 생성기로 선택돼 어드바이스 부가 기능을 부여받습니다.
+7. 프록시는 invoke()를 통해 타깃의 모든 메소드를 일관된 방식으로 부가기능을 사용하게 합니다.(invoke메소드의 파라미터 MethodInvocation이 타깃의 정보를 담고 있습니다.)
+
+위의 테스트를 통해 testUserService 빈을 자동으로 트랜잭션 부가기능을 제공해주는 프록시로 대체했는지 upgradeAllOrNothing()으로 확인합니다.  
+한 가지 더 확인할 것은 아무 빈에나 트랜잭션 부가기능이 적용되는 것은 아닌지 확인합니다. 설정파일의 클래스 이름 패턴을 변경하면 테스트를 실패하게 되므로 검증합니다.  
+혹은 getBean("testUserService")로 가져온 오브젝트는 TestUserServiceImpl 타입이 아니라 JDK의 Proxy타입이므로, 다음과 같이 검증할 수 도 있습니다.
+
+```java
+@Test
+public void advisorAutoProxyCreator(){
+	assertThat(testUserService, is(java.lang.reflect.Proxy.class));
+}
+```
+
+#### 5-3. 포인트컷 표현식을 이용한 포인트컷
+조금 더 복잡한 패턴을 줄 수도 있습니다. 리플랙션 API는 클래스와 메소드의 이름, 패키지, 파라미터, 리턴값, 애노테이션 등등 모든 정보를 알아낼 수 있기 떄문입니다. 하지만 이를 구현하기는 번거롭습니다. 스프링은 정규식이나 EL과 비슷한 일조의 표현식 언어를 사용해 포인트컷을 작성하게 해줍니다. 바로 포인트컷 표현식(pointcut expression)입니다.  
+포인트컷 표현식을 지원하는 포인트컷을 적용하려면 AspectExpressionPointCut 클래스를 사용합니다. 포인트컷 표현식은 RegEx클래스의 정규식처럼 간단한 문자열로 복잡한 선정조건을 만들어 냅니다. 이름을 보면 알 수 있듯이 AspectJ 프레임워크에서 제공하는 것을 가져와 확장해 사용합니다.  
+
+AspectJ 포인트컷 표현식은 포인트컷 지시자인 execution()을 이용해 작성합니다.
+
+> excution( [접근제한자 패턴] 리턴타입패턴 [패키지.클래스타입 패턴] 메소드이름패턴 (파라미터 타입패턴) );
