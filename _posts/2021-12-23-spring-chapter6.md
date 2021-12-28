@@ -1050,12 +1050,12 @@ static class TestUserServiceImpl extends UserServiceImpl{
 		// 트랜잭션 코드가 없지만 어드바이스에 의해 부가기능이 부여된 프록시이므로 트랜잭션 기능이 있게됩니다.
 	}
 }
-<bean id="testUserService" class="UserServiceTest경로$TestUserServiceImpl" parent="userService" />
+
+<bean id="testUserService" class="UserServiceTest경로.$TestUserServiceImpl" parent="userService" />
 // parent 애트리뷰트는 상속받은 클래스의 xml 설정 내용을 받아올 수 있습니다.
 // 별도의 userDao나 mailSender를 지정해주지 않아도 됩니다.
 
 // 이제 프록시 생성 메소드 대상인 upgradeAllOrNothing()을 수정합니다.
-
 public class UserServiceTest{
 	@Autowired
 	UserService userService;	// Impl
@@ -1105,4 +1105,178 @@ public void advisorAutoProxyCreator(){
 
 AspectJ 포인트컷 표현식은 포인트컷 지시자인 execution()을 이용해 작성합니다.
 
-> excution( [접근제한자 패턴] 리턴타입패턴 [패키지.클래스타입 패턴] 메소드이름패턴 (파라미터 타입패턴) );
+> excution( [접근제한자 패턴] 리턴타입패턴 [패키지.클래스타입 패턴] 메소드이름패턴 (파라미터 타입패턴 | "..",...) );
+
+[]은 생략 가능하고, |은 OR의 의미입니다. 복잡하다면 리플랙션을 이용해 Target클래스의 minus()를 가져와서 풀 시그니처를 가져와 풀이해봅니다.  
+
+```java
+System.out.println(Target.class.getMethod("minus", int.class, .int.class));
+
+// 출력 결과
+public int springbook.learningtest.spring.pointcut.Target.minus(int,int) throws java.lang.RuntimeException
+```
+
+하나씩 살펴봅니다.
+- public : 접근제한자입니다. 생략가능합니다.(조건 부여하지 않음)
+- int : 리턴값의 타입을 나타냅니다. *을 써서 모든 타입을 선택할 수 있습니다.
+- springbook.learningtest.spring.pointcut.Target : 패키지와 타입이름을 포함하는 클래스의 타입 패턴입니다. 생략가능합니다. 바로 뒤의 메소드 이름패턴과 .으로 연결되기에 잘 구분해야합니다. *을 사용할 수있고, ..을 사용하면 한번에 여러개의 패키지를 선택할 수 있습니다.
+- minus : 메소드 이름 패턴입니다. *을 사용할 수 있습니다.
+- (int, int) : 메소드 파라미터의 타입 패턴입니다. 파라미터의 타입들을 ,로 구분하여 적습니다. 없다면 ()만 적습니다. 개수와 타입 상관없이 허용하려면 ..을 넣습니다. ...을 이용하면 뒷부분의 파라미터 조건을 생략합니다.
+- throws java.lang.RuntimeException : 예외 이름에 대한 패턴 타입입니다. 생략 가능합니다.
+
+AspectJExpressionPointcut 클래스의 오브젝트를 만들어서 표현식을 이 오브젝트의 expression() 프로퍼티로 넣어주면 됩니다.  
+테스트 코드로 살펴봅니다.
+
+```java
+// 테스트를 도와줄 메소드입니다.
+public void pointcutMatches(String expression, Boolean expected, Class<?> clazz, String methodName, class<?>... args) throws Exception{
+	// 순서데로 표현식, 결과, 클래스 이름 패턴, 메소드 이름 패턴, 파라미터 타입 패턴(... 으로 개수 제한을 두지않습니다.)
+	AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
+	pointcut.setExpression(expression);
+	// 주입받은 expression 으로 포인트컷 표현식을 생성합니다.
+
+	assertThat(pointcut.getClassFilter().matches(clazz) && pointcut.getMethodMatcher().matches(clazz.getMethod(methodName, args), null),
+	is(expected));
+	// 클래스 필터와 메소드 매처를 각각 비교합니다. matches 메소드는 정규 표현식과 일치하는지 비교합니다.
+	// boolean matches(Method method, Class<?> targetClass)으로, 타겟클래스는 null로 설정합니다.
+}
+
+@Test
+public void pointcut() throws Excepion{
+	tagetClassPointcutMatches("execution(* *(..))", true, true, true, true, true, true);
+}
+
+public void targetClassPointcutMatches(Stirng expression, boolean... expected) throws Exception{
+	pointcutMatches(expression, expected[0], Target.class, "hello");
+	...
+	pointcutMatches(expression, expected[3], Target.class, "minus", int.class, int.class);
+	...
+}
+```
+이외에도 AspectJ 표현식은 빈의 이름으로 비교하는 bean()에도 쓰일 수 있고, 특정 애노테이션이 적용된 메소드를 선별할 수 도있습니다.  
+
+- bean(*Service) : Service로 끝나는 빈을 가져옵니다.
+- @annotaion(org.springframework.transacion.annotation.Trasactional) : @Trasactinal  이 적용된 메소드를 가져옵니다.
+
+이제 사용법을 살펴보았으니 앞에서 만든 transactionPointcut 빈을 스프링이 제공하는 클래스로 변경합니다.
+
+```java
+<bean id="transacionPointcut" class="org.springframework.aop.aspectj.AspectJexpressionPointcut">
+	<property name="expression" value="execution(* *..*ServiceImpl.upgrade*(..))" />
+```
+
+중요한 것은 기존에 단순히 mappeClassName 프로퍼티로 impl을 선별한 것과 포인트컷 표현식으로 impl을 선별한 것은 차이점이 있습니다.  
+TestUserServiceImpl을 다시 TestUserService로 돌려 놓으면 선정대상으로 되지 않아야 하지만, 테스트는 멀쩡히 성공합니다.  
+그 이유는 표현식의 클래스 이름 패턴이 아니라 클래스 **타입** 패턴 이기 때문입니다. 타입을 따져보자면 TestUserService의 슈퍼클래스인 UserServiceImpl이기도 하고, 구현 인터페이스인 UserService타입이기도 하고, 본인 자체로 TestUserService타입 이기도 합니다. 그렇기에 Impl로 끝나는 타입 패턴 조건에 충족합니다.  
+
+#### 5-4. AOP란 무엇인가?
+지금까지의 작업을 다시 복습해 봅니다.
+1. 트래잭션 서비스 추상화
+
+트랜잭션 경계설정 코드를 비즈니스 로직을 담은 코드에 넣으면서 특정 트랜잭션 코드에 종속되어 버렸습니다. JDBC를 이용한 트랜잭션 코드를, 다른 DB로 바꾸려면 모든 트랜잭션 코드를 수정해야했습니다. 그래서 서비스 추상화 기법을 이용해 트랜잭션 적용을 분리했습니다. 구현 방법을 담을 인터페이스를 선언해 연결관계를 느슨하게 하고, 구체적인 구현 내용을 담은 의존 오브젝트는 런타임 시에 다이내믹하게 DI해줍니다.
+
+2. 프록시와 데코레이터 패턴
+
+여전히 비즈니스 코드에 트랜잭션 코드가 나타납니다. 더 이상 단순한 추상화와 메소드 추출로는 분리해낼 수 없었습니다. 그래서 데코레이터 패턴을 적용했습니다. 트랜잭션의 코드는 데코레이터에 담겨서, 클라이언트와 비즈니스 로직을 담은 클래스 사이에 존재하고, 클라이언트 -> 프록시 -> 비즈니스 로직 을 통해 접근하는 구조로 만들었습니다.
+
+3. 다이내믹 프록시와 프록시 팩토리 빈
+
+비즈니스 로직 인터페이스의 모든 메소드마다 일일이 프록시 클래스를 만들어 줘야 했습니다. 프록시 오브젝트를 런타임 시에 만들어주는 ProxyFactoryBean을 사용하여 해결했습니다. 또 어드바이스와 포인트컷을 프록시에서 분리해 여러 프록시에서 공유해서 사용할 수 있게 됐습니다.
+
+4. 자동 프록시 생성 방법과 포인트컷
+
+xml 설정에서 빈마다 트랜잭션을 적용해야한다는 부담이 남았습니다. 빈 후처리기를 이용해 만들어진 빈을 프록시로 대체해주는 방법을 사용했습니다. 결국 어드바이스와 포인트컷을 완전 분리해냈습니다.
+
+5. 부가기능의 모듈화
+   
+이처럼 부가기능은 스스로 독립적인 방식으로 존재하기 어렵습니다. 트랜잭션 부가기능이란 트랜잭션 기능을 추가해줄 다른 대상에게 의존해야 의미가 있기 때문입니다. 전통적인 방법으론 분리시킬 수 없습니다. 그래서 DI, 데코레이터 패턴, 다이내믹 프록시, 후 처리기, 자동 프록시 생성, 포인트컷 같은 기술을 사용해 TransactionAdvice라는 부가기능으로 독립적인 모듈화를 시킨 것입니다.
+
+이런 트랜잭션 경계설정과 같은 부가기능의 모듈화는 기존의 객체지향 설계 패러다임과는 구분되는 특성이있어서, 오브젝트와는 다르게 특별한 이름으로 부릅니다. **애스펙트(aspect)**입니다.  
+
+> 애스펙트 : 애플리케이션의 핵심기능은 아니지만, 구성하는 중요한 한 가지 요소이고, 핵심 기능에 부여되어 의미를 갖는 모듈. 어드바이저라고 봐도 됩니다.
+
+기존에 핵심 기능(비즈니스 로직)에 부가기능들이 포함되어 복잡했다면, 핵심기능과 분리되고, 성격이 다른 부가기능들 끼리도 분리되어, 깔끔해지게 됩니다. 이렇게 핵심기능과 부가기능을 애스팩트로 분리해 설계하는 것을 **AOP(Aspect Oriented Programming, 애스펙트 지향 프로그래밍)**이라고 합니다. AOP는 OOP(객체지향)을 돕는 보조적인 기술이지, 대체하는 개념이 아닙니다.  
+**이제 우리는 비즈니스 로직을 다룰 때는 비즈니스 로직 관점에서만 집중하고, 부가기능을 다룰 때는 부가기능에만 집중할 수 있게 됩니다. 이런 관점지향 프로그래밍이 AOP의 의미입니다.**  
+
+#### 5-5. AOP 적용 기술
+스프링 AOP의 핵심은 프록시를 사용했다는 것입니다. 따라서 JDK와 스프링 컨테이너 외에는 필요로하는 것이 없습니다. 이 프록시가 타깃 오브젝트의 메소드에 다이내믹하게 적용해주는 역할을 합니다.  
+프록시를 사용하지 않는 AspectJ라는 AOP프레임워크도 있습니다. AspectJ는 프록시 처럼 간접적인 접근을 하지않고, 자동으로 타깃 오브젝트를 수정하는 직접적인 방법을 사용합니다.  
+바이트 코드를 조작하므로 스프링보다 강력한 AOP 기능이 제공됩니다. 예를들면 타깃 오브젝트가 생성되는 순간 부가기능을 부여해주고 싶다면 프록시 방식에서는 불가능하지만 AspectJ는 가능합니다.  
+타깃 오브젝트의 생성은 프록시 패턴을 적용할 수 있는 대상이 아니기 떄문입니다. 물론 대부분의 부가기능은 프록시 방식인 메소드의 호출 시점에 부여하는 것으로 충분합니다.  
+
+#### 5-6. AOP의 용어
+- 타깃 : 타깃은 부가기능을 부여할 대상입니다. 다른 부가기능을 제공하는 프록시가 될 수도 있습니다.
+- 어드바이스 : 부가기능을 담은 모듈입니다. 오브젝트로 정의할 수 도있고 메소드레벨 에서 정의할 수도 있습니다.
+- 조인 포인트 : 어드바이스가 적용될 수 있는 위치입니다. 스프링 AOP에서는 메소드의 실행 단계 뿐입니다. 타깃 오브젝트가 구현한 인터페이스의 모든 메소드는 조인 포인트가 됩니다.
+- 포인트컷 : 어드바이스 적용 대상을 선별합니다. 스프링 AOP는 메소드를 선정합니다. execution을 이용해 표현식을 사용합니다.
+- 프록시 : 클라이언트와 타깃 사이에 존재해 부가기능을 제공하는 오브젝트 입니다. DI를 통해 클라이언트에게 주입되고, 클라이언트의 메소드 호출을 타깃 대신 받아서 부가기능을 부여하고 타깃에게 위임합니다.
+- 어드바이저 : 포인트컷 + 어드바이저 입니다. 스프링은 자동 프록시 생성기가 AOP 작업의 정보로 활용합니다.
+- 애스팩트 : AOP의 기본 모듈입니다. 한 개 이상의 포인트컷과 어드바이스 조합으로 만들어지며 보통 싱글톤 형태 오브젝트 입니다. 따로 클래스 정의와 실체(오브젝트)의 구분이 없습니다. 어드바이저가 곧 애스팩트 입니다.
+
+#### 5-7. AOP 네임 스페이스
+스프링 AOP를 위해 추가한 어드바이저, 포인트컷, 자동 프록시 생성기 같은 빈들은 컨테이너에 의해 자동으로 인식돼서 특별한 작업을 위해 사용됩니다. DAO나 userService같은 빈과는 다릅니다.  
+스프링 프록시 AOP를 적용하려면 4가지 빈이 필요합니다.
+
+- 자동 프록시 생성기 : DefalutAdvisorAutoProxyCreator 클래스를 빈으로 등록합니다. 빈 후처리고서 동작합니다.
+- 어드바이스 : 부가기능을 구현한 클래스를 빈으로 등록합니다. 유일하게 직접 구현하는 클래스입니다.
+- 포인트컷 : AspectJExpressionPointcut을 빈으로 등록합니다.
+- 어드바이저 : DefaultPointcutAdvisor 클래스를 빈으로 등록합니다.
+
+굉장히 기계적인 방법이므로 AOP와 관련된 태그를 정의한 aop 스키마를 제공합니다. 네임스페이스로 aop를 접두어로 사용합니다.
+```java
+<aop:cofing>
+	<aop:advisor>	// adivce를 ref 프로퍼티로 둡니다. pointcut애트리뷰트는 excution(표현식)을 사용합니다.
+```
+
+### 6. 트랜잭션 속성
+트랜잭션 추상화를 적용할 때 그냥 넘어간것이 하나있습니다.
+
+```java
+TransactionStatus status = this.transactionManager.getTransaction(new DefaultTransactionDefinition());
+```
+
+바로 트랜잭션 메니저에서 트랜잭션을 getTransaction 해올 때 사용한 오브젝트 입니다. 이 DefaultTransactionDefinition이 무엇인지 알아봅니다.
+
+#### 6-1. 트랜잭션 정의
+트랜잭션 경계 안에서 진행된 작업은 반드시 모두 성공하거나 모두 롤백되야 합니다. 그런데 이 밖에도 트랜잭션의 동작 방식을 제어할 수 있는 몇가지 조건이 있습니다. 이 제어에 사용하는 것이 TransactionDefinition 인터페이스고 이를 구현한 클래스가 DefaultTransactionDefinition입니다.  
+
+1. 트랜잭션 전파
+
+트랜잭션 전파란 트랜잭션의 경계에서 이미 진행 중인 트랜잭션이 있을 때/없을 때 어떻게 동작할 것인가를 결정합니다.(A트랜잭션이 진행 중인데 B트랜잭션이 끼어드는 경우)
+
+- PROPAGATION_REQUIRED : 가장 많이 사용됩니다. 진행 중인 트랜잭션이 없으면 새로 시작하고, 있으면 이에 참여합니다. 다양한 방식으로 결합해서 하나의 트랜잭션으로 구성합니다. Default...의 전파 속성은 이것입니다. 참여하게 되면 최초 트랜잭션이 경계까지 진행 되야 커밋됩니다.
+- PROPAGATION_REQUIRES_NEW : 항상 새로운 트랜잭션을 시작합니다. 즉 항상 독자적입니다.
+- PROPAGATION_NOT_SUPPORTED : 트랜잭션 없이 동작합니다. 진행 중인 트랜잭션이 있어도 무시합니다. 특별한 메소드만 제외하려고 할 때 포인트컷 작성이 복잡해질 경우 대신 사용할 수 있습니다.
+
+트랜잭션 시작을 getTransaction()으로 사용하는 이유가 트랜잭션 전파 속성 떄문입니다. 항상 트랜잭션을 새로 시작하는 것이 아니라, 전파 속성과 현재 진행중인 트랜잭션의 존재 여부에 따라서 달라지기 때문입니다.  
+
+2. 격리 수준
+
+모든 DB 트랜잭션은 격리수준(isolation level)을 갖고 있습니다. 트랜잭션은 여러 개가 동시에 진행 될 수 있기 떄문입니다. 순차적으로 진행하면 필요 없겠지만 이럴 경우 성능에 많은 문제가 있게됩니다. 기본적으로 ISOLATION_DEFAULT 값을 따릅니다.
+
+3. 제한시간
+
+트랜잭션을 수행하는 제한시간을 설정할 수 있습니다. 기본 설정은 제한시간이 없습니다.
+
+4. 읽기전용
+
+lead only로 설정해두면 트랜잭션 내에서 데이터를 조작하는 시도를 막아줍니다. 또 성능이 향상 될 수도 있습니다. 트랜잭셩 정의를 바꾸고 싶다면 Defalut... 대신 TrasactionDefinition 오브젝트를 구현해서 DI 하면 됩니다. 하지만 이 방법으로 트랜잭션 속성을 변경하면 해당 어드바이스를 사용하는 모든 메소드의 트랜잭션 정의가 한번에 바뀝니다.  
+
+#### 6-2. 트랜잭션 인터셉터와 트랜잭션 속성
+패턴을 이용해 선별한것과 같이 적용하면 됩니다. TransactionAdvice를 다시 설계할 필요는 없습니다. 스프링이 트랜잭션 경계설정 어드바이스로 사용하도록 만든 TransactionInterceptor가 존재하기 떄문입니다. 이제부터 이 클래스를 이용합니다.  
+TransactionInterceptor는 PlatformTransactionManger와 Properties 타입의 두 가지 프로퍼티(필드)를 갖습니다. Properties는 일종의 맵(컬랙션) 오브젝트 입니다.  
+Properties 타입인 property name 은 transactionAttributes로, 트랜잭션 속성을 정의한 프로퍼티 입니다. 트랜잭션 속성은 TransactionDefinition 인터페이스의 네가지 속성 항목에 rollbackOn()이라는 메소드를 갖고 있는 TransactionAttribute 인터페이스로 정의됩니다. rollbackOn()은 어떤 예외가 발생하면 롤백할 것인가를 결정합니다.
+
+기존의 TransactionAdvisor 코드를 보면 catch(RuntimeException e)가 롤백 대상인 예외 종류이고, new DefaultTransactionDefinition()이 네 가지 속성입니다.  
+런타임 예외에만 롤백 시키게 설계한 이유는, 타깃 메소드가 체크 예외를 던지는 경우에는 이것을 의미 있는 리턴의 한 가지로 인식해서 트랜잭션을 커밋하기 때문입니다.  
+기본적인 예외처리 원칙은 복구 불가능한 예외의 경우 런타임 예외로 포장해서 전달하는 방식을 따른다고 가정하기 떄문입니다.  
+그런데 TransactonAttribute는 roobackOn()이라는 속성을 둬서 기본 원칙과 다른 예외처리가 가능하게 해줍니다. TransactionInterceptor가 TransactionAttribute를 Properties라는 맵 타입 오브잭트로 받는 이유는 메소드 패턴에 따라서 각기 다른 트랜잭션 속성을 부여하기 위함입니다.  
+
+transactionAttributes 프로퍼티는 메소드 패턴과 트랜잭션 속성을 key와 value로 갖는 컬랙션입니다. 트랜잭션 속성으 문자열로 정의할 수 있습니다.  
+
+```java
+PROPAGATION_NAME, ISOLATION_NAME, readOnly, timeout_NNNN, -Ecxeption1, +Exception2
+// 전파 방식, 격리수준, 읽기전용, 제한시간, 체크예외중에서 롤백대상으로 추가 여러개 지정 가능, 런타임예외중 롤백시키 않을 대상, 여러개 지정 가능
+```
+
+트랜잭션 전파 속성만 필수입니다. 순서는 상관 없습니다. 
