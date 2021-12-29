@@ -1272,11 +1272,264 @@ Properties 타입인 property name 은 transactionAttributes로, 트랜잭션 �
 기본적인 예외처리 원칙은 복구 불가능한 예외의 경우 런타임 예외로 포장해서 전달하는 방식을 따른다고 가정하기 떄문입니다.  
 그런데 TransactonAttribute는 roobackOn()이라는 속성을 둬서 기본 원칙과 다른 예외처리가 가능하게 해줍니다. TransactionInterceptor가 TransactionAttribute를 Properties라는 맵 타입 오브잭트로 받는 이유는 메소드 패턴에 따라서 각기 다른 트랜잭션 속성을 부여하기 위함입니다.  
 
-transactionAttributes 프로퍼티는 메소드 패턴과 트랜잭션 속성을 key와 value로 갖는 컬랙션입니다. 트랜잭션 속성으 문자열로 정의할 수 있습니다.  
+transactionAttributes 프로퍼티는 메소드 패턴과 트랜잭션 속성을 key와 value로 갖는 컬랙션입니다. 트랜잭션 속성을 문자열로 정의할 수 있습니다.  
 
 ```java
 PROPAGATION_NAME, ISOLATION_NAME, readOnly, timeout_NNNN, -Ecxeption1, +Exception2
 // 전파 방식, 격리수준, 읽기전용, 제한시간, 체크예외중에서 롤백대상으로 추가 여러개 지정 가능, 런타임예외중 롤백시키 않을 대상, 여러개 지정 가능
+
+// TrasactionInterceptor의 예
+<bean id="transactionAdvice" class=".TrasactionInterceptor">
+	<property name="transactionManager" ref="transactionManager" />
+	<property name="transactionAttributes">
+		<props> // properties
+			<prop key="get*">PROPAGATION_REQUIRED,readOnly,....</prop>
+			// 보통 읽기전용 메소드는 get이나 find로 시작합니다.
+			<prop key="upgrade*">...
 ```
 
-트랜잭션 전파 속성만 필수입니다. 순서는 상관 없습니다. 
+트랜잭션 전파 속성만 필수입니다. 순서는 상관 없습니다. readOnly나 timeout 속성은 트랜잭션이 처음 시작될 때가 아니라면(중간에 호출된 경우라면) 적용되지 않고 진행 중인 트랜잭션의 속성에 따릅니다. 만약 하나 이상의 패턴과 일치하는 메소드 이름이라면 가장 정확하게 일치하는 것이 적용됩니다.  
+트랜잭션 속성으로 하나의 트랜잭션 어드바이스를 정의하는 것만으로 다양한 트랜잭션 설정이 가능해졌습니다.  
+
+기존의 aop 스키마보다 tx스키마를 활용하면 더 편하게 xml을 작성할 수 있습니다. tx스키마는 Enum을 이용해 문자열 오타를 검증할 수 있습니다.  
+```java
+// tx 스키마를 이용하는 경우
+<tx:advice id="transactionAdvice" transaction-manager="이 부분은 트랜잭션 매니저 빈 아이디가 transactionMager라면 생략 가능">
+// advice 태그에 의해 TransactionInterceptor 빈이 등록됩니다.
+	<tx:attributes>
+		<tx:method name="get*" propagation="REQUIRED" read-only="true">
+		// 오타 검사가 가능합니다.
+```
+
+#### 6-3. 포인트컷과 트랜잭션 속성의 적용 전략
+포인트컷은 부가기능 적용 대상을 선별하고 어드바이스는 트랜잭션 전파 속성에 따라 메소드별로 트랜잭션 적용 방식이 결정됩니다.  
+포인트컷 표현식과 트랜잭션 속성을 정의할 때 따르면 좋은 몇 가지 전략을 생각해 봅니다.  
+
+- 트랜잭션 포인트컷 표현식은 타입패턴이나 빈 이름을 사용한다.
+  - 트랜잭션용 포인트컷 표현식에는 메소드, 파라미터, 예외에 대한 패턴을 정의하지 않는게 좋습니다.
+  - 일반적으로 트랜잭션을 적용할 타깃 클래스의 **메소드는 모두** 트랜잭션 적용 후보가 되는 것이 좋기 때문입니다.
+  - 단순 조회 작업만 하는 메소드에도 읽기전용으로 트랜잭션 속성을 정의하면 성능 향상을 가져오고, 복잡한 조회는 제한시간을 걸 수 있습니다.
+    - 그러므로 트랜잭션 경계의 대상이 될 클래스의 패키지를 통째로 선택하거나, 클래스 이름에 패턴을 찾아서 표현식으로 만드는 것이 바람직합니다.
+  - execution(표현식)의 작성이 복잡할 경우 bean()표현식으로 빈 이름을 기준으로 선정해주는 방법을 고려합니다.
+- 공통된 메소드 이름 규칙을 통해 최소한의 트랜잭션 어드바이스와 속성을 정의한다.
+  - 일반적으로 하나의 애플리케이션에서 사용할 트랜잭션 속성의 종류는 많지 않습니다.
+  - 그러므로 모든 메소드에 디폴트 속성을 지정하고, get같은 읽기 전용 메소드들의 트랜잭션 속성을 같은 attributes 안으로 정의합니다.
+  - 일반화하기에는 적당하지 않은 트랜잭션 속성은 별도의 어드바이스와 포인트컷 표현식을 사용하는 편이 좋습니다.
+- 프록시 방식 AOP는 같은 타깃 오브젝트 내의 메소드를 호출할 때는 적용되지 않는다.
+  - 이것은 일종의 주의사항으로 타깃 오브젝트가 직접 자신의 다른 메소드를 호출하면 프록시를 거치지 않으므로 부가기능이 적용되지 않게됩니다.
+  - 이런 경우 AspectJ를 이용해 바이트코드를 건들여서 해결할 수 있습니다.
+
+#### 6-4. 트랜잭션 속성 적용
+이제 트랜잭션 속성과 전략을 UserService에 적용해봅니다. 일반적으로 특졍 계층의 경계를 트랜잭션 경계와 일치시키는 것이 바람직합니다.  
+
+```java
+public interface UserService{
+	void add(User user);
+	User get(String id);
+	List<User> getAll();
+	void deleteAll();
+	void update(User user);	//DAO 메소드와 1:1로 대응되는 CRUD메소드 이지만 add()처럼 단순 위임기능 이상의 로직을 가질 수도 있습니다.
+
+	void upgradeLevels();
+}
+
+public class UserServiceImpl implements UserService{
+	UserDao userDao;
+	...
+
+	public void deleteAll(){userDao.deleteAll();}
+	public User get(String id){return userDao.get(id);}
+	...
+	// DAO로 위임하도록 만듭니다. 필요하면 부가 로직을 넣을 수 있습니다.
+	// 트랜잭션은 보통 서비스 계층의 메소드를 통해 만들어지기 떄문입니다.
+}
+
+// 모든 비즈니스 로직의 서비스 빈에 트랜잭션이 적용되도록 수정합니다.
+<aop:config>
+	<aop:advisor advice-ref="transactionAdvice" pointcut="bean(*Service)">
+
+// 이후 tx스키마를 이용해 get메소드에 읽기전용 속성을 넣어줍니다.
+```
+
+이렇게 User 관련 데이터 조작은 UserService라는 트랜잭션 경계를 통해 진행할 경우 모두 트랜잭션이 적용 됩니다.  
+비즈니스 로직인 서비스 계층 오브젝트 UserService의 모든 메소드가 트랜잭션 경계를 부여하기에 가장 적절한 대상입니다.  
+그리고 테스트 같은 특별한 경우를 제외하고 다른 계층이나 모듈에서 User를 다루는 DAO에 직접 접근하는 것은 차단해 서비스 계층을 통해 접근하도록 합니다.  
+예를 들면, UserService가 아닌 서비스 계층이면 UserService의 메소드를 통해 DAO에 접근하는 것입니다.  
+그래야 서비스계층 메소드에 부가로직을 추가할 수도있고, 트랜잭션 속성을 부여할 수 있게 됩니다.  
+
+읽기전용이 성공적으로 적용 되었는가를 위한 테스트를 만들어 확인해볼 필요가 있습니다.  
+이때 발상해는 예외의 종류를 모르므로 우선 실패하게 테스트 코드를 만듭니다. 예외가 발생해야하므로 TestUserService를 이용합니다.
+
+```java
+//TestUserService 클래스
+
+public List<User> getAll(){
+	for(User user: super.getAll()){
+		super.update(user);
+		// 부모 클래스인 UserServiceImpl의 메소드
+		// 쓰기를 시도하므로 오류가 발생할 것입니다.
+	}
+	return null;	// 리턴값은 의미가없습니다.
+}
+
+@Test //어떤 오류일지 모르므로 실패하도록 테스트를 짭니다.
+public void readOnlyTrasactionAtribute(){
+	testUserService.getAll();
+}
+// TrasientDataAccessResourceException 이 발생합니다. 일시적인 예외라는 뜻입니다.
+@Test(expected=) // expected 속성을 이용하면 테스트가 성공하고 읽기전용을 검증하게 됩니다.
+```
+
+### 7.애노테이션 트랜잭션 속성과 포인트컷
+포인트컷  표현식과 트랜잭션 속성을 이용해 트랜잭션을 일괄적으로 적용하는 방식은 대부분 상황에 잘 들어맞지만, 가끔 세밀한 트랜잭션 속성을 일부 클래스나 메소드에 따라 적용해야 할 떄가 있습니다. 매번 새로운 포인트컷과 어드바이스를 추가하기 번거롭기 때문에 스프링이 제공하는 다른 방법이 있습니다.  
+직접 **타깃**에 트랜잭션 속성 정보를 가진 애노테이션을 지정하는 방법입니다.  
+
+#### 7-1. 트랜잭션 애노테이션
+타깃에 부여할 수 있는 트랜잭션 애노테이션은 org.springframework.trasaction.annotation의 @Transactional 입니다.  
+이 애노태이션을 정의한 코드를 살펴봅니다.  
+
+```java
+@Target({ElementType.METHOD, ElementType.TYPE}) //어노테이션을 사용할 대상을 지정합니다. 메소드와 타입(클래스,인터페이스)에 지정합니다.
+@Retention(RetentionPolicy.RUNTIME)	// 애노테이션 정보가 언제까지 유지되는지를 정합니다. 런타임으로 설정하면 런타임 때도 리플랙션을 통해 정보를 얻어옵니다.
+@Inherited // 상속을 통해서도 어노테이션 정보를 얻어 옵니다.
+public abstract @interface Transactional {
+  
+  public abstract java.lang.String value() default "";
+  
+  public abstract org.springframework.transaction.annotation.Propagation propagation() default org.springframework.transaction.annotation.Propagation.REQUIRED;
+  
+  public abstract org.springframework.transaction.annotation.Isolation isolation() default org.springframework.transaction.annotation.Isolation.DEFAULT;
+  
+  public abstract int timeout() default (int) -1;
+  
+  public abstract boolean readOnly() default false;
+  
+  public abstract  java.lang.Class<? extends java.lang.Throwable>[] rollbackFor() default {};
+  
+  public abstract java.lang.String[] rollbackForClassName() default {};
+  
+  public abstract  java.lang.Class<? extends java.lang.Throwable>[] noRollbackFor() default {};
+  
+  public abstract java.lang.String[] noRollbackForClassName() default {};
+
+  // 트랜잭션 속성의 모든 항목을 엘리먼트로 지정할 수있습니다. 디폴트 값이 설정되어있어 생략가능 합니다.
+}
+```
+
+@Transactional의 타깃은 메소드 타입입니다. 따라서 메소드, 클래스,인터페이스에 사용할 수 있습니다. @Transactional을 트랜잭션 속성정보로 사용하도록 지정하면, 스프링은 해당 **애노테이션이 부여된 모든 오브젝트를 자동으로 타깃 오브젝트로 인식합니다. **이때 사용되는 포인트컷은 TransactionAttributeSourcePointcut 입니다. 스스로 표현식을 갖고 있진 않지만, @Transactional이 대신 포인트컷의 선정 결과로 돌려줍니다. 당연하게도 이 어노테이션 부여되면 자동으로 포인트컷의 선정 대상이기도 하기 떄문입니다.  
+작동 방식은 해당 애노테이션이 붙으면 TransactionInterceptor는 기존의 메소드 이름 패턴으로 가져오는 트랜잭션 속성 대신, @Transactional에 정의된 트랜잭션 속성을 가져오는 AnnotationTransactionAttributeSource를 사용해 어브바이스로 이용합니다.  
+
+@Transactional을 적용할 때 4단계의 fallback(대체) 정책을 이용합니다. 타깃 메소드, 타깃 클래스, 선언 메소드(구현이나 상속 대상인 클래스의 메소드), 선언 타입(구현 대상 클래스나 인터페이스) 순으로 애노테이션이 적용되어있는지 확인하고 가장 먼저 발견된 속성정보를 사용합니다. 기본적으로 @Transactional 적용 대상은 클라이언트가 사용하는 인터페이스가 정의한 메소드이므로 인터페이스에 두는게 바람직합니다. 다만 프록시 방식의 AOP가 아닌 인터페이스를 사용하지 않는 트랜잭션을 이용하면 인터페이스에 적용한 애노테이션은 무시되기에 주의합니다.  
+
+#### 7-2. 트랜잭션 애노테이션 적용
+트랜잭션 애노테이션을 이용해 트랜잭션 속성을 설정하는 것은 매우 간단합니다. TX 스키마에서 적용했던 트랜잭션 속성을 애노테이션으로 바꿔보겠습니다.  
+
+```java
+@Transactional
+public interface UserService{
+	void add(User user);
+	...	// 타입레벨(인터페이스)에 부여된 애노테이션의 트랜잭션 속성을 따릅니다.
+
+	@transactional(readOnly=true)
+	User get(String id);
+
+	@Transactional(readOnly=true)
+	List<User> getAll();
+	// <tx:method name="get*" read-only="true"> 인 부분입니다.
+}
+```
+
+만약 UserServiceImpl에 @Transactional 을 적용하면, 선언 메소드에 적용된 애노테이션보다 먼저 적용되므로, get메소드의 읽기전용 속성이 적용되지 않게됩니다.  
+
+### 8. 트랜잭션 지원 테스트
+#### 8-1. 선언적 트랜잭션과 트랜잭션 전파 속성
+트랜잭션 전파 속성은 매우 유용합니다. REQUIRED 전파 속성을 가진 메소드를 결합해서 다양한 크기의 트랜잭션 작업을 만들 수 있습니다.  
+예를들어, add()메소드의 경우 사용자를 등록하는 것이 하나의 비즈니스 작업 단위가 됩니다.  
+그런데, 만약 어느 날의 이벤트 신청 내역을 모아서 한 번에 처리하는 기능이 있다고 해봅니다. 하루치 이벤트 신청 내역을 처리하는 기능은 반드시 하나의 작업 단위로 처리돼야 합니다. 이 기능이 비즈니스 트랜잭션의 경계가 됩니다. 이 작업 중간에 사용자 등록을 할 필요가 있을 수 있습니다. 이런경우 UserDao의 add()를 직접 사용하는것 보다는, 서비스 계층인 UserService의 add()를 이용하는 것이 좋습니다. 트랜잭션 속성이 부여되어 있기 때문에 해당 작업의 일부로 참여해 하나의 커다란 트랜잭션을 통합됩니다. 만약 독자적으로 새로 트랜잭션을 만들경우 작업의 일부로 참여할 수가 없어서, add()코드를 그대로 추가해야 합니다.  
+
+AOP를 이용해 코드 트랜잭션의 속성을 지정하는 것을 선언적 트랜잭션 이라고 합니다. 반대되는 개념으로 직접 트랜잭션 AIP를 사용해 코드를 사용하는 것은 프로그램에 의한 트랜잭션 입니다.  
+
+#### 8-2. 트랜잭션 동기화와 테스트
+스프링의 트랜잭션 추상화 덕분에, DA기술에 상관없이, 트랜잭션 기술에 상관없이 DAO에서 일어나는 작업들을 하나의 트랜잭션으로 묶어서 추상 레벨에서 관리할 수 있었습니다. 그로 인해 AOP를 통하여 트랜잭션의 자유로운 전파와 유연한 개발이 가능해 진것입니다.  
+
+이 트랜잭션 추상화의 핵심은 트랜잭션 매니저와 트랜잭션 동기화 입니다. PlatformTransactionManager 인터페이스를 구현한 트랜잭션 매니저를 통해 트랜잭션 기술과 상관없이 일관적인 제어가 가능하고, DAO에서 공유가 가능해졌습니다.  
+트랜잭션 동기화 기술은 진행 중인 트랜잭션이 있는지 확인하고, 참여할 수 있도록 해줍니다.
+
+트랜잭션 매니저 빈을 등록해서 @Autowired로 가져와 테스트를 진행하는 것도 가능합니다. 아래 검증을 살펴봅니다.  
+
+```java
+@Autowired
+PlatformTransactionManager transactionManager;
+
+//트랜잭션을 미리 시작하고 REQUIRED들이 참여하는지에 대한 테스트입니다.
+@Test
+public void transactionSync(){
+	DefaultTransactioonDefinition txDefinition = new DefalutTransactionDefinition();
+	// 기본 트랜잭션 속성을 정의합니다.
+	TransactionStatus txStatus = transactionManager.getTransaction(txDefinition);
+	// 트랜잭션을 시작합니다.
+
+	UserService.deleteAll(); // 참여합니다.
+
+	UserService.add(users.get(0)); // 참여합니다.
+
+	transactionManager.commit(txStatus); // 트랜잭션 종료
+}
+
+// 트랜잭션 동기화 검증
+// 읽기전용과 제한시간 등은 참여할 경우 이미 만들어진 트랜잭션 속성을 따릅니다.
+public void transactionSync(){
+	... // 트랜잭션 속성 생성
+	txDefinition.setReadOnly(true); // 읽기 전용 부여
+	... // 트랜잭션 시작
+
+	userService.deleteAll(); // 오류가 발생합니다. 읽기전용에서 쓰기 작업을 했습니다.
+}
+```
+
+동기화 검증 테스트에서, 선언적 트랜잭션에만 동기화가 적용되는 것은 아닙니다. JdbcTemplate와 같이 DA 추상화를 적용한 DAO에도 REQUIRED인 것처럼 동일한 영향을 미칩니다.
+즉 userDao.deleteAll()으로 테스트해도 동일한 예외가 발생합니다. 이 외에도 테스트에서 트랜잭션을 조작해서 롤백 기능을 검증할 수 도있고 유용하게 사용할 수 있습니다.  
+
+그중에서 테스트에서 가장 유용하게 쓸 수 있는것은 롤백 테스트입니다.
+
+> 롤백 테스트 : 테스트 내의 모든 DB작업을 하나의 트랜잭션 안에서 동작하게 하고, 테스트가 끝나면 무조건 롤백 하게 합니다.  
+
+```java
+@Test
+public void ...(){
+	...//트랜잭션 생성, 시작
+
+	try{
+		테스트 메소드
+	}
+	finally{
+		transactionManager.rollback(txStatus);
+		// 무조건 테스트가 끝나면 롤백 시킵니다.
+	}
+}
+```
+
+테스트용 DB를 사용하더라도 매번 초기화를 시키는것이 깔끔한 테스트에 도움이 됩니다. 픽스처가 필요한 경우에는 그에 맞게 테스트 앞부분에서 DB를 초기화하고 진행하면 됩니다.  
+
+#### 8-3. 테스트를 위한 트랜잭션 어노테이션
+스프링의 컨텍스트 테스트 프레임워크는 어노테이션을 통해 테스트를 편리하게 해줍니다.
+- @ContextConfiguration : 테스트를 실행하기 전에 스프링 컨테이너를 초기화합니다.
+- @Transactional : 테스트 내에서 진행하는 모든 트랜잭션 관련 작업을 하나로 묶어줍니다. 테스트코드에서 일일이 트랜잭션을 만들고 시작,종료, 롤백했던 부분과 같은 결과입니다. 
+- @Rollback : 기본적으로 테스트 트랜잭션 어노테이션은 롤백을 시키기때문에 Rollback(false)를 지정하면 롤백을 시키지않을 수 있습니다. 메소드 레벨에만 선언 가능합니다.
+- @TransactionConfiguration : 클래스 단위로 트랜잭션 속성을 변경할 수 있게 해줍니다.  
+
+효과적인 테스트를 진행하려면 단위 테스트(의존 오브젝트 이용x)와 통합 테스트(외부 리소스나 여러 계층의 클래스가 참여)는 아예 클래스로 구분해서 분리하는게 좋습니다.  
+테스트는 어떤 경우에도 서로 의존해서 순서에 성공 여부에 따라 다음 테스트 결과가 달라지면 안됩니다. 롤백 테스트는 이러한 원칙을 지키는데 유용합니다.  
+
+### 9. 정리
+- 트랜잭션 경계설정 코드를 분리해서 비즈니스 로직 클래스와 동일한 인터페이스를 구현한 클래스로 만들면, DI를 이용해 클라이언트의 변경 없이 분리된 트랜잭션 부가기능을 사용 가능합니다.
+- 목 오브젝트를 활용하면 의존관계 속에 있는 오브젝트도 손쉽게 고립된 테스트로 만들어 줍니다.
+- DI를 이용한 트랜잭션 분리는 데코레이터 패턴과 프록시 패턴으로 이해됩니다.
+- 번거롭던 프록시 클래스 작성은 다이내믹  프록시를 이용하면 간단합니다.
+- 다이내믹 프록시는 스태틱 팩토리 메소드를 사용하기 떄문에 실체가 없어 빈으로 등록되기 어렵습니다. 따라서 자동 프록시 생성 기술에 대한 추상화 서비스를 제공하는 ProxyFactoryBean을 이용했습니다.
+- ProxyFaactoryBean의 xml설정이 반복되어, 자동 프록시 생성기와 포인트컷을 활용했습니다.
+- 자동 프록시 생성기는 빈 후처리기를 이용해 생성된 빈을 포인트컷으로 선정한 후 어드바이스를 담아 프록시로 만들고 반환합니다. 이는 스프링 컨테이너 초기화 시점에 자동으로 만들어줍니다.
+- 포인트컷은 AspectJ 표현식을 이용해 작성하면 편합니다.
+- AOP는 OOP만으로는 모듈화하기 힘든 부가기능을 가능하도록 도와줍니다.
+- AOP를 이용해 트랜잭션을 지정하는 방법에는 포인트컷 표현식과 메소드 이름 패턴을 이용하는 방법이 있고, 애노테이션을 사용하는 방법이 있습니다.
+- @Transactional을 이용한 테스트는 손쉽게 DB를 사용하는 코드의 테스트를 만듭니다.
