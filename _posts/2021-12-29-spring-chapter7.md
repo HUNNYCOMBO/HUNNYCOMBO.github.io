@@ -420,4 +420,82 @@ JaxbXmlSqlReader는 조금 더 개선해야 할 부분이 있습니다.
 JAXB외에도 Object-XML Mapiing 기술은 여러 개가 있습니다. 여러가지 기술이 존재한다면 서비스 추상화가 떠오르비다. 스프링은 트랜잭션, 메일 전송 뿐만아니라 OXM에 대해서도 서비스 추상화 기능을 제공합니다. Mashaller 인터페이스와 Unmarshaller 인터페이스 입니다. 이 두가지를 모두 구현한 클래스로 Jaxb2Marshaller가 있습니다. 빈으로 해당 클래스를 unmarshaller 라는 id로 추가합니다. 해당 빈은 Unmarshaller 타입이므로 @Autowired로 주입이 가능합니다. 다른 기술로 바꾸고싶다면 빈의 클래스를 해당 기술의 구현 클래스로 변경해주면 됩니다. 이렇게 구성하면 어떤 구현 클래스 이든 unmarshal()한줄이면 언마샬링이 끝납니다.  
 
 #### 3-2. OXM 서비스 추상화 적용
+이제 OXM 추상화 기능을 사용하는 SqlService를 만들어 봅니다. SqlReader는 스프링의 OXM 언마샬러을 이용하도록 OxmSqlService내에 고정시킵니다. SQL을 읽는 방법을 OXM으로 제한해서 사용성을 극대화(최적화) 합니다. Reader클래스를 스태틱 맴버 클래스로 정의하면 의존 오브젝트를 자신만 사용하도록 독점합니다. 이는 낮은 결합도를 유지하면서 높은 응집도를 구현합니다. 이렇게 OxmSqlService와 OxmSqlReader는 구조적으론 결합, 논리적으로는 명확하게 분리됩니다. 스태틱 맴버 클래스는 이런 용도로 씁니다.  
 
+```java
+public class OxmSqlService implements SqlService {
+	private final OxmSqlReader oxmSqlReader = new OxmSqlReader();
+	// final로 설정해서 상속과 확장이 불가능합니다. Service와 Reader는 강하게 결합돼서 하나의 빈으로 등록되고 한번에 설정합니다.
+	// final로 선언해서 한번만 초기화 하게 됩니다. 즉 Service생성과 Reader가 생성 되서 초기화됩니다.
+
+	private SqlRegistry sqlRegistry = new HashMapSqlRegistry();
+	// private 맴버 클래스로 정의 합니다. 그러면 OxmSqlService만이 사용할 수 있습니다.
+	// reader와 달리 디폴트 오브젝트로 만들어진 프로퍼티 입니다. 교체 가능합니다.
+	
+	public void setSqlRegistry(SqlRegistry sqlRegistry) {
+		this.sqlRegistry = sqlRegistry;
+	}
+	
+	public void setUnmarshaller(Unmarshaller unmarshaller) {
+		this.oxmSqlReader.setUnmarshaller(unmarshaller);
+		// Service의 프로퍼티로 DI 받은 것을 그대로 내부 클래스인 Reader로 옮겨줍니다.
+	}
+	
+	public void setSqlmap(Resource sqlmap) {
+		this.oxmSqlReader.setSqlmap(sqlmap);
+		// 마찬가지로 리더로 전달합니다.
+	}
+
+	private class OxmSqlReader implements SqlReader {
+		private Unmarshaller unmarshaller;
+		private Resource sqlmap = new ClassPathResource("sqlmap.xml", UserDao.class);
+
+		public void setUnmarshaller(Unmarshaller unmarshaller) {
+			this.unmarshaller = unmarshaller;
+			// 전달받은 언마샬러 입니다.
+		}
+		...
+	}
+}
+```
+
+final로 선언된 Reader를 사용하므로 DI하거나 변경할 수 없습니다. 하나의 클래스로 만들어 두기 때문에 빈의 설정이 최적화 됩니다. OXM을 적용하는 경우 외부에서 DI 해줄게 많기 떄문에 SqlReader를 단순한 디폴트 오브젝트 방식으로 제공할수는 없습니다.  
+OxmSqlReader는 스스로 빈으로 등록될 수 없습니다. 자신을 만드는 클래스의 프로퍼티를 통해 간접적으로 DI받아야 합니다.  
+이 방법은 OxmSqlReader의 경우 두 개의 프로퍼티를 DI해줘야 하기 떄문에, 어느 수정자 메소드에서 오브젝트를 생성해야 할지 모릅니다. 스프링이 어떤 순서로 프로퍼티를 설정해줄지 알 수 없기 떄문입니다. 그래서 미리 오브젝트를 만들어두고(스태틱, 코드에서는 final 필드) 각 수정자 메소드에서 DI받은 값을 넘겨주게 합니다.  
+sqlmap은 OxmSqlReader의 디폴트 값을 사용할 것이고, 언마샬러는 스프링의 빈에의해 제공됩니다.  
+
+이렇게 최적화해서 빈설정은 단 두개면 됩니다.  
+
+```java
+<bean id="sqlService" class="OxmSqlServcie경로">
+	<property name="unmarshaller" ref="unmarshaller" />
+
+<bean id="unmarshaller" class="Jaxb2...">
+	<property name="contextPath" value="springbook.user.sqlservice.jaxb" />
+```
+
+OxmSqlServie는 OXM에 최적화된 빈 클래스를 만들기 위한 틀입니다. 그런데 BaseSqlSevice와 loadSql()과 getSql()이 겹치게 됩니다. 이를 해결하기 위해서 메소드 추출방식을 적용하기엔 애매하고, 프록시방식을 써서 OxmSqlService를 프록시로, SqlService의 기능 구현을 BaseSqlService로 위임하게 할 수도 있지만, 이 경우도 두 개의 빈을 등록해야되서 불편합니다.  
+Reader를 Serivce안에 고정시킨 것처럼, OxmlSqlService 내부에 BaseSqlService를 두고 위임하면 중복된 코드를 줄일 수 있습니다. 관련된 로직도 BaseSqlService만 수정하면 됩니다.  
+
+```java
+public class OxmSqlService implements SqlService {
+	private final BaseSqlService baseSqlService = new BaseSqlService();
+	...
+
+	@PostConstruct
+	public void loadSql() {
+		this.baseSqlService.setSqlReader(this.oxmSqlReader);
+		this.baseSqlService.setSqlRegistry(this.sqlRegistry);
+		
+		this.baseSqlService.loadSql();
+		// 위임 합니다.
+	}
+
+	public String getSql(String key) throws SqlRetrievalFailureException {
+		return this.baseSqlService.getSql(key);
+	}
+```
+
+#### 3-3. 리소스 추상화
+지금까지 만든 OxmSqlReader나 XmlSqlReader에는 같은 클래스 패스에 존재하는 파일로만 제한되는 단점이 있습니다. 특정 폴더에서 읽어와야하거나, 웹상에서 읽어와야 하거나, 서블릿 컨텍스트의 상대적 폴더에서 읽어야할 수도 있습니다. 아쉽게도 스프링은 다양한 위치에 존재하는 리소스에 대한 서비스 추상화를 제공하지 않습니다.  
+대신 스프링은 일관성 없는 리소스 접근 API를 추상화해서 Resource라는 인터페이스를 제공합니다.
