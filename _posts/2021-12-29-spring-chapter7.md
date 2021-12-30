@@ -236,10 +236,188 @@ loadSql()이라는 초기화 메소드는 오브젝트를 만드는 시점에서
 xmlSqlService는 아직 확장할 영역이 많이 있습니다. 만약 xml대신 다른 포맷의 파일에서 SQL을 읽어오게 하려면 지금 구조에서는 완전히 뜯어 고쳐야합니다. 즉, SQL을 가져오는 방법이 고정되어 있습니다. 만약 HashMap이 아닌 다른 방식으로 저장해서 가져오려면 역시 새로 작성해야 합니다. 이는 단일 책임 원칙을 위반합니다. 그렇다고 아예 새로운 클래스를 만들면 상단 부분의 코드가 중복됩니다. 늘 그래왔듯 인터페이스와 DI를 이용합니다.
 
 분리 가능한 관심사를 생각해봅니다.
-1. SQL정보를 외부의 리소스로부터 읽어오는 것입니다.
-2. 읽어온 SQL을 저장하고 호출할 때 제공하는 것입니다. 부가적인 책임으로 가져온 SQL을 수정하는 기능도 생각해 볼 수 있습니다.
+1. SQL정보를 외부의 리소스로부터 읽어오는 것입니다. --> SqlReader 클래스
+2. 읽어온 SQL을 저장하고 호출할 때 제공하는 것입니다. 부가적인 책임으로 가져온 SQL을 런타임시에 수정하는 기능도 생각해 볼 수 있습니다. --> SqlRegistry 클래스
 
 이 두책임을 어떻게 조합할 것인지 생각해봅니다.
-1. SqlService를 구현합니다.
+1. SqlService를 구현해서, 인터페이스로 DAO와 의존관계를 맺습니다.
 2. DAO에 서비스를 제공해주는 오브젝트(userService)와 이 두가지 책임을 가진 오브젝트를 협력해서 동작하도록 합니다.
+
+인터페이스를 구현하기 전에 생각해 볼 점이 있습니다. sqlReader로 읽어온 sql을 어떻게 sqlRegistry로 전달해새 저장할 것인지를 생각해야합니다. sqlReader의 메소드의 리턴 타입을 map으로 지정해서 전달하면, 만약 JAXB에서 읽어올 경우, sqlmap과 sqp타입 오브젝트로 읽어온 정보를 다시 map으로 옮겨 닮아서 리턴하게 되서 불편합니다. 그렇다고 JAXB의 sql 클래스를 리턴타입으로 쓰면, JAXB 기술에 고정되어버리게 됩니다. 우리는 구현 방식이 다양한 두 개의 오브젝트 사이에서 포맷을 강제하는 것을 피할 방법을 찾아야 합니다.  
+발상을 조금 바꿔 보면 이런 번거로움을 제거할 방법이 있습니다.  
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW0RBT10gLS0-fFNRTOyalOyyrXwgQltTcWxTZXJ2aWNlXVxuICAgIEIgLS0-fFNRTOydveq4sOyalOyyrXwgQ1tTcWxSZWFkZXJdXG4gICAgQiAtLT58U1FM65Ox66GdLOyhsO2ajHwgRFtTcWxSZWdpc3RyeV1cbiAgICBDIC0tPnzsnb3quLB8IEVbU1FM66as7IaM7IqkXVxuICAgIEZbU3FsVXBkYXRlXSAtLT58U1FM67OA6rK9IOyalOyyrXwgRCIsIm1lcm1haWQiOnsidGhlbWUiOiJkYXJrIn0sInVwZGF0ZUVkaXRvciI6ZmFsc2UsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)](https://mermaid.live/edit#eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW0RBT10gLS0-fFNRTOyalOyyrXwgQltTcWxTZXJ2aWNlXVxuICAgIEIgLS0-fFNRTOydveq4sOyalOyyrXwgQ1tTcWxSZWFkZXJdXG4gICAgQiAtLT58U1FM65Ox66GdLOyhsO2ajHwgRFtTcWxSZWdpc3RyeV1cbiAgICBDIC0tPnzsnb3quLB8IEVbU1FM66as7IaM7IqkXVxuICAgIEZbU3FsVXBkYXRlXSAtLT58U1FM67OA6rK9IOyalOyyrXwgRCIsIm1lcm1haWQiOiJ7XG4gIFwidGhlbWVcIjogXCJkYXJrXCJcbn0iLCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)
+
+본래 SqlReader로 읽어온 정보를 SqlService구현 클래스를 통해 SqlRegistry에게 전달하는 구조였습니다. 하지만 단순히 두 오브젝트(리더,레지스트리) 사이의 정보를 전달하는 것이 전부라면 SqlService가 중간 과정에서 빠지는 방법을 생각해 볼 수 있습니다.  
+즉, SqlReader에게 SQlRegistry 전략을 제공해주면서 저장하라고 요청하게 하는 것입니다.  
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW1NxbFNlcnZpY2VdIC0tPnxTUUzsnb3quLAg7JqU7LKtfCBCW1NxbFJlYWRlcl1cbiAgICBCIC0tPnxTUUzrk7HroZ18IENbU3FsUmVnaXN0cnldXG4gICAgQSAtLT58U1FMIOqygOyDiXwgQyIsIm1lcm1haWQiOnsidGhlbWUiOiJkYXJrIn0sInVwZGF0ZUVkaXRvciI6ZmFsc2UsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)](https://mermaid.live/edit#eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBBW1NxbFNlcnZpY2VdIC0tPnxTUUzsnb3quLAg7JqU7LKtfCBCW1NxbFJlYWRlcl1cbiAgICBCIC0tPnxTUUzrk7HroZ18IENbU3FsUmVnaXN0cnldXG4gICAgQSAtLT58U1FMIOqygOyDiXwgQyIsIm1lcm1haWQiOiJ7XG4gIFwidGhlbWVcIjogXCJkYXJrXCJcbn0iLCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)
+
+이런 구조로 만들면 불필요하게 SqlService의 코드를통해 특정 포맷으로 변환한 SQL정보를 주고 받을 필요가 없습니다. SqlReader와 SqlRegistry는 각자의 구현 방식을 독립적으로 유지하면서 꼭 필요한 관계만 가지고 협력합니다.  
+SqlRegistry가 일종의 콜백 오브젝트가 되면서 SqlReader가 사용할 SqlRegistry의 오브젝트를 제공하는것을 SqlService가 담당합니다.  
+SqlReader는 내부에 갖고 있는 데이터(SQL정보)를 의존 오브젝트인 SqlRegistry의 필요에 따라(등록할 때만) 돌려줍니다.  
+자바 오브젝트는 쓸데없이 자신 내부의 데이터를 외부로 노출시킬 필요가 없습니다.  
+코드로 살펴봅니다.  
+
+```java
+// 기존에 SqlService를 사이에 두고 정보를 주고받을 경우
+public class SqlService구현 implements SqlService{
+	Map<String,Sring> sqls = sqlReader.readSql();
+	// 맵이라는 전송타입을 강제하게됩니다.
+	sqlRegistry.addSqls(sqls);
+}
+
+// SqlReader와 SqlRegistry 사이에 의존 관계를 둘경우
+public class SqlService구현 implements SqlService{
+	sqlReader.readSql(sqlRegistry);
+}
+
+interface SqlRegistry{
+	void registerSql(String key, String sql);
+	// SqlReader가 이 메소드를 이용해 읽어들인 SQL을 SqlRegistry에 저장합니다.
+	String findSql(String key) throws SqlNotFoundException;
+	// 키로 SQL을 검색합니다. 검색 실패시 예외를 던집니다.
+}
+
+interface SqlReader{
+	void readSql(SqlRegistry sqlRegistry);
+}
+```
+
+이제 두 개의 책임에 대한 인터페이스를 정의했습니다. 이 확장구조를 담는 SqlService 구현 클래스는 두 개의 인터페이스 타입 프로퍼티를 갖고 DI받도록 합니다.  
+
+#### 2-5. 자기참조 빈으로 시작하기
+기존에 만든 SqlService의 구현 클랫 XmlSqlService를 다시 보면, SqlService, SqlReader, SqlRegistry 이 세 관심사를 구분 없이 하나로 모아놨었습니다. 그렇다면 이 세 개의 인터페이스를 XmlSqlService 하나의 클래스가 모두 구현하는 것도 괜찮습니다. extends의 상속과 달리 implements는 다중 상속이 가능합니다. 인터페이스 구현 역시 상속의 일종으로 타입을 상속받게 됩니다. 또, 클래스는 당연히 인터페이스에만 의존하게 만들어야 DI를 적용해 구현 클래스를 바꾸고 의존 오브젝트를 변경해서 자유롭게 확장할 수 있습니다.  
+이제부터 할 것은 책임에 따라 분리되지 않았던 코드가 모인 XmlSqlService 클래스를 책임에 따라 분리된 인터페이스를 구현하도록 만드는 것입니다. 그래서 같은 클래스의 코드지만, 책임이 다른 코드는 직접 접근하지 않고 해당 인터페이스를 통해 간접적으로 사용하도록 합니다.  
+
+```java
+public class XmlSqlService implements SqlService, SqlRegistry, SqlReader {
+	// --------- SqlProvider ------------
+	private SqlReader sqlReader;
+	private SqlRegistry sqlRegistry;
+	// 의존 오브젝트를 DI받을 수 있도록 선언합니다.
+		
+	public void setSqlReader(SqlReader sqlReader) {
+		this.sqlReader = sqlReader;
+	}
+
+	public void setSqlRegistry(SqlRegistry sqlRegistry) {
+		this.sqlRegistry = sqlRegistry;
+	}
+
+	@PostConstruct
+	public void loadSql() {
+		this.sqlReader.read(this.sqlRegistry);
+		// 초기화 메소드에서는 sqlReader에게 sqlRegistry를 전달해서 읽고 저장하게 합니다.
+		// 어떻게 구현할지는 의존 오브젝트의 역할입니다.
+	}
+
+	@Override
+	public String getSql(String key) throws SqlRetrievalFailureException {
+		try {
+			return this.sqlRegistry.findSql(key);
+			// sqlService의 메소드입니다. Registry와 key값을 이용해 가져옵니다.
+		} 
+		catch(SqlNotFoundException e) {
+			throw new SqlRetrievalFailureException(e);
+		}
+	}
+
+	// --------- SqlRegistry ------------	
+	private Map<String, String> sqlMap = new HashMap<String, String>();
+	// SqlRegistry 구현의 일부므로 SqlRegistry 구현 메소드로만 접근합니다.
+
+	@Override
+	public String findSql(String key) throws SqlNotFoundException {
+		String sql = sqlMap.get(key);
+		if (sql == null)  
+			throw new SqlRetrievalFailureException(key + "에 대한 SQL을 찾을 수 없습니다.");
+		else
+			return sql;
+
+	}
+
+	@Override
+	public void registerSql(String key, String sql) {
+		sqlMap.put(key, sql);
+		// HashMap 저장소를 사용하는 구현방법에서 독립되기 위해 인터페이스의 메소드로 접근합니다.
+		// SQL을 등록할 때는 Reader를 이용해 등록 됩니다.
+	}
+	
+	// --------- SqlReader ------------
+	private String sqlmapFile;
+	// sqlReader 구현의 일부므로 sqlReader의 구현 메소드로만 접근합니다.
+
+	public void setSqlmapFile(String sqlmapFile) {
+		this.sqlmapFile = sqlmapFile;
+	}
+
+	@Override
+	public void read(SqlRegistry sqlRegistry) {
+		String contextPath = Sqlmap.class.getPackage().getName(); 
+		try {
+			JAXBContext context = JAXBContext.newInstance(contextPath);
+			Unmarshaller unmarshaller = context.createUnmarshaller();
+			InputStream is = UserDao.class.getResourceAsStream(sqlmapFile);
+			Sqlmap sqlmap = (Sqlmap)unmarshaller.unmarshal(is);
+			for(SqlType sql : sqlmap.getSql()) {
+				sqlRegistry.registerSql(sql.getKey(), sql.getValue());
+			}
+		} catch (JAXBException e) {
+			throw new RuntimeException(e);
+		} 		
+	}
+}
+
+//bean 설정
+<bean id="sqlService" class="XmlsqlService 경로">
+	<property name="sqlReader" ref="sqlService" />
+	<property name="sqlRegistry" ref="sqlService" />
+	<property name="sqlmapFile" ref="sqlmap.xml" />
+	// 프로퍼티는 자기 자신을 참조 할 수 있습니다. 수정자 메소드로 주입만 가능하면 됩니다.
+```
+
+이렇게 세 기능을 인터페이스로 분리하고, JAXB를 사용하는 SqlReader와 HashMap을 사용하는 SqlRegistry와 sqlService를 한 곳으로 모은 구현 클래스를 만들었습니다.  
+SQL을 읽을 때는 SqlService가 reader를 통하고 찾을 떄는 registry를 통합니다. sql을 등록할때는 reader가 DI받은 registry에 등록합니다.  
+
+#### 2-6. 디폴트 의존관계
+반면 확장을 위해 세 관심사를 완전 분리해서 각각 구현 클래스를 두고 DI로 조합하는 방법도 생각해 볼 수 있습니다. 이떄 SqlService 구현 클래스의 프로퍼티(리더, 레지스트리)들을 서브클래스에서 필요한 경우에만 접근할 수 있도록 protected로 선언합니다. 다만 이럴 경우 빈 설정이 늘어나게 됩니다. 만약, 특정 의존 오브젝트가 대부분의 환경에서 거의 기본적으로 사용될 가능성이 있다면, 디폴트 의존관계를 갖는 빈을 만드는 것도 고려해볼 수 있습니다.
+
+> 디폴트 의존관계 : 외부에서 DI받지 않는 경우에 자동 적용되는 의존관계를 말합니다.
+
+```java
+public class DefaultSqlService extends BaseSqlService{
+	// SqlService만 구현한 클래스를 상속받은 클래스 입니다.
+	public DefaultSqlService(){
+		setSqlReader(new JaxbXmlSqlReader());
+		setSqlRegistry(new HasnMapSqlRegistry());
+		// 각각 따로 구현한 리더와 레지스트리 클래스
+	}
+}
+
+// 빈설정
+<bean id="sqlService" class="DeefalutSqlService경로">
+
+// sqlamp 프로퍼티도 디폴트 의존관계를 맺어야하는데 이 프로퍼티는
+// reader에서 갖고있으므로 reader역시 디폴트 의존관계를 만듭니다.
+
+pulbic class JaxbSqlReader implements SqlReader{
+	private static final String DEFAULT_SQLMAP_FILE = "sqlamp.xml";
+	// 상수로 디폴트 값을 줍니다.
+
+	private String sqlmapFile = DEFAULT_SQLMAP_FILE;
+	...
+}
+```
+DefaultSqlService는 BaseSqlService를 상속받으므로, 부모의 프로퍼티를 그대로 갖고있습니다. 이를 이용해 언제든지 프로퍼티를 변경할 수 있습니다. 디폴트 의존 오브젝트 대신 다른 오브젝트를 사용하려면 빈 설정으로 추가하면 됩니다. 다만 이럴경우, 생성자에서 빈을 만들고 다시 대신 사용할 빈을 만들기 때문에 리소스 낭비가 있을 수 있습니다.  
+
+### 3. 서비스 추상화 적용
+JaxbXmlSqlReader는 조금 더 개선해야 할 부분이 있습니다.
+1. JAXB기술 외에도 다른 기술로도 손쉽게 바꿔 사용할 수 있어야 합니다.
+2. 같은 클래스패스 안에서만 XML을 읽어오는 것을, 원격이나 절대경로로도 읽어올 수 있어야 합니다.
+
+#### 3-1. OXM 서비스 추상화
+JAXB외에도 Object-XML Mapiing 기술은 여러 개가 있습니다. 여러가지 기술이 존재한다면 서비스 추상화가 떠오르비다. 스프링은 트랜잭션, 메일 전송 뿐만아니라 OXM에 대해서도 서비스 추상화 기능을 제공합니다. Mashaller 인터페이스와 Unmarshaller 인터페이스 입니다. 이 두가지를 모두 구현한 클래스로 Jaxb2Marshaller가 있습니다. 빈으로 해당 클래스를 unmarshaller 라는 id로 추가합니다. 해당 빈은 Unmarshaller 타입이므로 @Autowired로 주입이 가능합니다. 다른 기술로 바꾸고싶다면 빈의 클래스를 해당 기술의 구현 클래스로 변경해주면 됩니다. 이렇게 구성하면 어떤 구현 클래스 이든 unmarshal()한줄이면 언마샬링이 끝납니다.  
+
+#### 3-2. OXM 서비스 추상화 적용
 
