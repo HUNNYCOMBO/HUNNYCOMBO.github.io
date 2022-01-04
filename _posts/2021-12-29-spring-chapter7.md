@@ -1166,3 +1166,306 @@ public class UserServiceImpl implements UserSerivce{}
 testUserService빈과, mailSender빈은 우선 빈 메소드로 두도록합니다. dataSource와 transactionManager 빈은 스프링이 제공하는 클래스라 자동등록 빈 애노테이션을 적용할 방법이 없습니다.  
 
 #### 6-3. 컨텍스트 분리와 Import 애노테이션
+지금의 DI정보는 테스트를 위한 DI 정보와 바르게 동작하는데 필요한 DI 정보가 섞여있습니다. 분리하는 방법은 간단합니다. DI 설정 클래스를 추가하는 것입니다. 기존의 TestAppli..클래스는 AppContext로 변경합니다. 그리고 TestAppContext클래스를 만들어 테스트용 DI정보를 분리시킵니다.  
+자동 빈 등록을 적용한 userDao와 userService빈은 운영과 테스트 모두 필요합니다. DI정보로 등록된 DB연결, 트랜잭션 관리, SQL 서비스도 항상 필요합니다. 반면에 testUserService빈과 mailSender(더미mailSender) 빈은 테스트 에서만 필요합니다.  
+
+```java
+@Configuration
+publc class TestAppConetext{
+	@Autowired
+	UserDao userDao;
+	// Repository을 적용해서 가져올 수 있습니다.
+
+	@Bean
+	public UserService testUserService(){...// setUserDao, setMailSender}
+	// UserServiceImpl을 상속했으므로 userDao프로퍼티는 자동와이어링 적용 대상입니다.
+	// 수정자 메소드로 userDao와 mailSender를 제거해도 됩니다.
+	// return new TestUserService();
+
+	@Bean
+	public MailSneder mailSender(){
+		return new DummyMailSender();
+	}
+}
+```
+
+testUserService 빈은 autowired을 이용하여 빈들을 DI 받도록 간단하게 수정할 수 있습니다. 아예 Component(해당 애노테이션이 붙은 클래스를 찾아서 빈으로 등록)를 부여서 scan을 이용해 자동 등록이 되게 할 수도 있지만, 권장하진 않습니다.  
+스캔은 기준 패키지를 지정해서 클래스를 찾으므로, 운영과 테스트용으로 클래스를 분리시켜 만들었다면 스캔 위치도 분리시켜야 합니다. 하지만 지금은 UserDaoServiceImpl과 UserServiceTest 등이 같은 패키지 아래 존재하므로 기준 위치를 정하기 어렵습니다. 또 테스트용으로 만든 빈은 설정정보에 내용이 드러나는게 좋습니다.  
+이 테스트용 빈이 어떻게 구성된 것인지 파악하기가 좋기 때문입니다. 이제 테스트코드에 넣은 DI정보용 클래스도 수정해야 합니다.  
+
+```java
+@RunWith...
+@ContextConfiguration(classes={TestAppContext.class, AppContext.class})
+public class UserDaoTest{}
+// DI설정 정보를 테스트용 운영용 둘다 필요하므로 classes에 적용할 설정 클래스를 나열합니다.
+```
+
+이제 AppContext에는 운영용 빈만 남게되었지만 여타 빈 설정과 구분되는 SQL 서비스용 빈이 남아있습니다. SQL서비스는 그 자체로 독립적인 모듈처럼 취급하는게 나아 보입니다.  
+SQL서비스는 다른 애플리케이션에서도 사용될 수 있기 떄문입니다. userDao 구현 빈들은 SQlService타입의 빈을 DI 받을 수 있기만 하면 됩니다. SqlService 구현 빈들은 애플리케이션을 구성하는 빈과 달리 독립적으로 개발될 가능성이 높습니다. 분리하는 방법은 Configuration 클래스를 하나 더 만들면 됩니다.  
+
+```java
+@Configuration
+public class SqlServiceContext{
+	@Bean
+	public SqlService sqlService(){}
+
+	@Bean
+	public SqlRegistry ...
+
+	@Bean
+	public Unmarshaller ...
+
+	@Bean
+	public DataSource embeddedDataBase....
+}
+```
+
+이제 빈 설정을 담은 클래스가 세 개가 됐습니다. classes로 SqlServiceContext를 추가해도 좋지만 다른 방법이 있습니다. 테스트용 빈과 다르게 SQL서비스 빈은 운영 중에 반드시 필요한 정보 입니다. 그래서 AppContext와 긴밀하게 연결해주는게 좋습니다. 전에 XML설정정보는 ImportResource 애노테이션을 이용해 따로 가져온 것과 같은 방법으로 적용할 수 있습니다.  
+AppContext가 메인 설정정보가되고, SqlServiceContext는 AppContext에 포함되는 보조 설정정보로 사용하는 것입니다. 메인 설정정보에 Import 애노테이션을 이용합니다.  
+
+```java
+@Configuration
+@EnableTransactionManageMent	// 트랜잭션 설정
+@ComponentScan(basePackages="springbook.user")
+@Import(sqlServiceContext.class) // 해당 설정정보가 함께 적용됩니다.
+public class AppContext{}
+```
+
+#### 6-4. 프로파일
+이제 운영에서 필요한 설정정보는 AppContext하나로 충분하지만, 메일 서비스 빈은 테스트용 더미빈만 존재해 운영시에 사용될 MailSender 타입 빈 설정을 넣어줘야 합니다.  
+
+```java
+@Bean
+public MailSender mailSender(){
+	JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+	// 스프링이 제공하는 클래스입니다.
+	mailSender.setHost("mail.mycompany.com");
+	return mailSender;
+}
+```
+문제는 같은 타입이면서 아이디도 같은 mailSender 빈이 두개가 존재해 운영시, 테스트시에서 먼저 발견된 빈을 사용하는 문제가 생깁니다.(classes에 등록된 뒤에서부터 순서로 먼저 발견된 빈을 사용합니다.) 이렇게 양쪽에 필요하면서 내용은 달라야하는 경우 빈 설정 작성이 곤란해집니다. mailSender빈은 autowired를 통해 주입되기 때문에 빈 아이디를 다르게 설정하는 것으로도 해결 할 수 없습니다. 이럴 경우엔 우선 또 설정정보 클래스를 만들어서 운영용 mailSender빈을 새로운 설정정보 클래스로 옮기고, 테스트시에는 TestAppContext, AppContext를 사용하고, 운영시에는 AppContext와 새로운 설정정조 클래스를 이용하는 방법으로 해결할 수 있습니다.  
+이렇게 번거롭게 클래스를 분리해서 조합하는 방법대신 스프링 3.1에서는 Profile애노테이션을 이용해 빈 구성이 달라지는 내용을 프로파일로 만들고 실행 시점에 어떤 프로파일의 빈 설정을 사용할지 지정하게 할 수 있습니다.  
+프로파일은 간단한 이름과 빈 설정으로 구성됩니다. 프로파일을 적용하면 환경에 따라 여러 빈 설정 조합을 쉽게 만들어낼 수 있습니다.
+
+```java
+@Configuration
+@Profile("test")
+public class TestAppContext{}
+```
+
+이제 TEstAppCOntext는 test 프로파일의 빈 설정정보를 담은 클래스가 됐습니다. Appcontext나 SqlServiceContext 클래스에는 굳이 프로파일을 지정하지 않아도 됩니다. 프로파일을 지정하지 않으면 default프로파일로 취급해 항상 적용됩니다.  
+이 방법으로 ProductionAppContext(운영시 mailSender 빈 설정정보 클래스)는 production 프로파일을 적용합니다.  
+프로파일을 적용하면 메인 설정 클래스에서 모든 설정 클래스를 Import해도 됩니다.
+
+```java
+...
+@Import({SqlServiceContext.class, TestAppContext.class, ProductionAppCotnext.class})
+public class AppContext{}
+// 메인 설정 클래스가 모두 Import하니 userDao와 userSevice에서 ContextConfiguration에 TestAppContext를 빼도 됩니다.
+```
+
+프로파일을 설정했으니, 어떤 설정정보를 참조하는 클래스에서 ActiveProfiles 애노테이션으로 사용할 프로파일을 지정해줘야 합니다.  
+UserDaoTest나 UserServiceTest가 실행될 때 활성 프로파일로 test프로파일을 지정하면 됩니다. 운영시에는 production으로 지정합니다.
+
+```java
+....
+@ActiveProfiles("test")
+@ContextConfiguration(classes=AppContext.class)
+public class UserServiceTest{}
+```
+
+프로파일이 일종의 필터처럼 작동한다고 봐도 좋습니다. 정말 설정한 프로파일만 가져오는지 테스트하기 위해선 DefaultListableBeanFactory를 이용해 검증합니다. 스프링 컨테이너는 이 클래스를 이용해 빈을 관리합니다. 스프링은 친절하게도 이 클래스를 autowired로 빈으로 주입받을 수 있게 합니다.  
+DefaultListableBeanFactory는 BeanFactory를 구현한 클래스입니다. 참고로 스프링 컨테이너는 모두 BeanFactory를 구현하고 있습니다.  
+
+```java
+@Autowired
+DefaultListableBeanFactory bf;
+
+// UserServiceTest 클래스 입니다.
+@Test
+public void beans(){
+	for(String n: bf.getBeanDefinitionNames()){
+		System.out.println(n + "\t" + bf.getBean(n).getClass().getName());
+		// 테스트 컨텍스트에 등록된 빈 이름과 빈 클래스를 모두 얻습니다.(프로파일 설정에따른)
+		// 출력 결과로 수동으로 빈을 확인해봅니다.
+	}
+}
+```
+
+만약 전체 구성을 살펴보기 위해 설정정보를 하나로 모아야할 필요가 있다면, 중첩 클래스를 이용하면 됩니다. 메인 설정정보인 AppContext에 Product..Context와 TestAppContext를 스태틱 클래스로 지정하고, Import애노테이션에서 SqlServiceContext만 남겨둡니다. Configuration이 붙은 내부 클래스는 스프링이 자동으로 메인 설정정보에 포함시켜주기에 Import에서 제거 할 수 있습니다.  
+
+#### 6-5. 프로퍼티 소스
+AppContext에는 아직 환경에 따라 달라지는 빈이 있습니다. dataSource 빈입니다. 환경에 따라 DB연결 정보를 다르게 넣어줘야 합니다. 이런 외부 서비스 연결에 필요한 정보는 자바 클래스보다는 XML이나 프로퍼티 파일 같은 텍스트 파일에 저장해두는게 낫습니다. 자바의 프로퍼티 파일 포맷을 이용하면 됩니다. 확장자는 properties이고, 키=값 형태로 프로퍼티를 정의합니다.  
+
+```java
+// database.properties 파일
+// db.을 붙여 서비스 종류가 햇갈리지 않게 추가합니다.
+db.driverClass=com.mysql.jdbc.Driver
+db.url=jdbc:mysql://localhost/springbook?characterEncoding=UTF-8
+db.username=spring
+db.password=book
+```
+
+이제 AppContext의 dataSource() 빈 메소드가 프로퍼티 파일의 내용을 가져와 DB연결을 생성하도록 만들어 봅니다.  
+컨테이너가 프로퍼티 값을 가져오는 대상을 프로피터 소스라고 합니다. PropertySource애노테이션을 이용해 프로퍼티파일의 위치를 지정해줍니다.  
+이렇게 가져온 프로피터 값은 Environment 타입의 환경오브젝트에 저장됩니다. 환경 오브젝트는 빈처럼 autowired를 통해 주입받을 수 있습니다.  
+
+```java
+@Configuration
+@EnableTransactionManagement
+@ComponentScan(basePackages="springbook.user")
+@Import(SqlServiceContext.class)
+@PropertySource("/database.properties")
+public class AppContext {
+	@Autowired Environment env;
+	// getProperty(키)로 프로퍼티 파일의 값 가져옵니다.
+	
+	@Bean
+	public DataSource dataSource() {
+		SimpleDriverDataSource ds = new SimpleDriverDataSource();
+		
+		try {
+			ds.setDriverClass((Class<? extends java.sql.Driver>)Class.forName(env.getProperty("db.driverClass")));
+			// Class프로퍼티는 Class 타입오브젝트를 넘겨야 합니다.
+			// Class.forName()의 도움으로 Class 타입으로 변환시키고 사용합니다.
+		}
+		catch(ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+		ds.setUrl(env.getProperty("db.url"));
+		ds.setUsername(env.getProperty("db.username"));
+		ds.setPassword(env.getProperty("db.password"));
+		
+		return ds;
+	}
+```
+이제 DB연결 정보는 설정정보 클래스에서 분리됐습니다. DB정보가 변경된다고 해도 AppContext의 코드를 수정하고 다시 빌드할 필요가 없습니다.  
+
+지금까지 Autowired는 빈 오브젝트를 필드나 수정자메소드의 파라미터로 주입받을 때 사용했습니다. dataSource 빈의 프로퍼티는 빈 오브젝트가 아닌 값이므로 autowired를 이용할 수 없습니다. 대신 Value애노테이션을 이용하면 됩니다. Value를 이용하면 프로퍼티를 가져오기 위해 Environment타입 오브젝트를 DI받는게 아닌 값을 직접 DI받을 수 있습니다.  
+Value의 사용법은 여러가지가 있지만 치환자를 이용해 필드에 주입하는 방법을 사용합니다. 이를 위해선 PropertySourcesPlacholderConfigurer라는 빈을 정의해야 합니다.  
+이 빈은 빈 팩토리 후처리기로 사용되, Value와 치환자를 이용해 프로퍼티를 필드에 주입해 줍니다.  
+
+```java
+...
+@PropertySource("/database.properties")
+public class AppContext{
+	@Value("${db.driverClass}")
+	Class<? extneds Driver> driverClass; // 필드로 선언합니다.
+	...
+	// ${}를 치환자(placeholder)라고 합니다. xml에서도 사용 가능한데, 프로퍼티태그의 value값에 #{}를 넣으면
+	// 가져온 리소스의 실제 값으로 바꿔치기합니다.
+	// ${db.driverClass}는 프로퍼티 파일에서 가져온 실제 값 com.mysql.jdbc.Driver로 치환됩니다.
+	// 타입변환을 스프링이 처리하므로 Stirng타입 com.mysql... 이 아닌 실제 클래스 오브젝트로 치환됩니다.
+
+	@Bean
+	public DataSource dataSource(){
+		Simple...
+
+		ds.setDriverClss(this.driverClass);
+	}
+
+	@Bean
+	public static PropetySourcesPlaceholderConfigurer placeholderConfigurer(){
+		return new PropertySour...();
+		// 반드시 스태틱메소드로 선언되야 합니다.
+	}
+}
+```
+
+#### 6-6. 빈 설정의 재사용과 Enable 애노테이션
+SQL서비스와 관련된 빈 설정정보는 재사용 가능하도록 분리했습니다. SqlSerice만 DAO에 노출하면되고 나머지 구현 방법은 감춰두고 자유롭게 확장 변경 할 수 있습니다. 또, 빈 설정을 자바 클래스로 만들어뒀기 떄문에 빈 설정정보도 라이브러리와 함께 패키징해서 제공할 수 있습니다. 빈 설정정보로 xml을 사용했다면 SQL을 사용할 프로젝트(애플리케이션) 마다 빈 설정을 다시 해줘야 하는 번거로움이 있지만, 클래스로 두면서 Import 애노테이션만 추가하면 프로젝트에 빈 등록을 한번에 끝낼 수 있습니다.  
+다만 아직 독립적인 모듈이 되기 곤란한 부분이있습니다. OxmSqlService의 내부 클래스 OxmSqlReader클래스를 보면 Sql매핑 내역을 담은 sqlmap.xml 파일의 위치를 지정하는 부분이 있습니다.  
+이 매핑파일의 위치는 프로젝트마다 달라질 수 있습니다. 그렇다면 SQL 매핑 리소스는 빈 클래스 외부에서 설정할 수 있어야 합니다.  
+
+```java
+private class OxmSqlReader implements SqlReader{
+	...
+	private Resource sqlmap = new ClassPathResource("sqlmap.xml", UserDao.class);
+	// 위치가 UseDao클래스 루트로 고정되어 있습니다.
+	// "/sqlmap.xml" 만 파라미터를 두면, 디폴트 위치를 따르게 됩니다.
+	// 하지만 매핑 리소스와 이 빈의 의존성은 제거할 필요가 있습니다.
+}
+```
+
+이미 sqlmap프로퍼티 값은 OxmSqlService에 있는 같은 이름의 프로퍼티를 통해 전달 받을 수 있게 해놨습니다.  
+
+```java
+@Bean
+public SqlService sqlService(){
+	...
+	sqlService.setSqlmap(new ClassPathResource("sqlmap.xml", UserDao.class);
+	// 아직 특정 경로에 종속된 정보가 남아있습니다.
+	// 이대로 두면 해당코드의 수정 없이 Import로 다른 애플리케이션에서 사용할수 없습니다.
+	// UserDao와 의존성을 제거해야합니다.
+	// 매번 달라지는 정보를 담는 콜백과 달리 리소스의 위치는 바뀔일이 없습니다. -> 인터페이스/DI를 이용합니다.
+}
+
+// sqlServiceContext에서 Sql매핑파일의 위치지정을 분리합니다.
+
+public interface SqlmapConfig{
+	Resource getSqlMapResource();
+}
+
+public class UserSqlmapConfig implements SqlMapConfig{
+	@Override
+	public Resource getSqlMapResource(){
+		return new ClassPathResource("sqlmap.xml", UserDao.class);
+	}
+}
+
+...
+public class AppContext{
+	// 운영시 빈 설정정보
+	...
+	@Bean
+	public SqlMapConfig sqlMapConfig(){
+		return new UserSqlMapConfig();
+	}
+}
+
+@Configuration
+public class SqlServiceContext{
+	@Autowried
+	SqlMapConfig sqlMapConfig;
+
+	@Bean
+	public SqlService sqlService(){
+		...
+		sqlServce.setSqlmap(this.sqlMapConfig.getSqlMapResource());
+		...
+	}
+}
+```
+
+이제 SqlServiceContext 코드는 SQL매핑파일의 위치 변경에 영향을 받지 않습니다. 이처럼 설정정보를 담은 클래스도 리팩토링으로 OOP원칙을 지킬 수 있게 할 수 있습니다.  
+그런데 리소스 위치 하나 때문에 별도의 클래스를 만든것이 좀 못마땅합니다. UserSqlMapConfig 클래스와 빈 설정을 아주 간단히 만들 수 있는 방법이 있습니다.  
+우선 Configuration 애노테이션을 살펴봅니다. 이 애노테이션은 Component를 메타 애노테이션으로 갖고있어 자동등록 빈 대상이 됩니다. 그래서 AppContext도 빈으로 취급됩니다.  
+그래서 autowired로 주입받을 수 있습니다. 그렇다면 AppContext가 이 SqlMapConfig를 직접 구현하게 해봅니다.  
+하나의 빈이 꼭 한가지일 필요는 없습니다. 2-5를 참조하면 자기참조 빈을 만들면서 하나의 빈이 여러 개의 인터페이스를 구현하는 경우를 볼 수 있습니다. AppContext도 원하면 얼마든지 인터페이스를 구현하게 만들 수 있습니다. 이것을 이용해 SqlMapConfig를 구현하게해서, SqlServiceContext가 주입받게 만듭니다.  
+
+```java
+public class AppContext implements SqlMapConfig{
+	// 이렇게 SqlMapConfig 타입을 갖게해 직접 구현하면, UserSqlMapConfig클래스와 AppContext의 sqlMapConfig 빈 메소드를 제거합니다.
+	...
+	@Override
+	public Resource getSqlMapResource(){
+		return new Class...;
+	}
+}
+```
+
+조금더 직관적으로 보기 위해서 Enable애노테이션을 활용합니다. 트랜잭션에 적용한 EnableTransactionManagement를 생각해보자. 이 애노테이션은 TransactionManagementConfigurationSelector 클래스를 Import하는 셈입니다.  
+스프링 3.1은 SqlServiceContext처럼 모듈화된 빈 설정을 가져올 떄 사용하는 import를 다른 애노테이션으로 대체할 수 있는 방법을 제공합니다.  
+Component를 메타 애노테이션으로 이용해 Service나 Repository로 직관적이게 볼 수 있게 하는 방식입니다.
+
+```java
+@Import(value=SqlServiceContext.class)
+public @interface EnableSqlService{}
+
+// 이렇게 Enable 애노테이션을 정의하면 직관적이게 볼 수 있습니다.
+
+...
+@EnableSqlService // import를 대체합니다.
+pubic class AppContext implements SqlMapConfig{
+}
+```
