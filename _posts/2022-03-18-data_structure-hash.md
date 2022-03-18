@@ -2,7 +2,7 @@
 layout: single
 title:  "해시함수, hashmap, 해시충돌"
 categories: data_structure
-tags: [data_structure, hashmap, hash_fuction, hash_crush]
+tags: [data_structure, hash_fuction, hash_collision]
 toc: true
 author_profile: false
 sidebar:
