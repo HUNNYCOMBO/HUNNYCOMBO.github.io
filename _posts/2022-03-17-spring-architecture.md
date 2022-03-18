@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: page
 title:  "Layered Architecture"
 categories: spring
 tags: [spring, architecture]
@@ -10,8 +10,8 @@ sidebar:
 search: true
 ---
 
-> 참조한 블로그 [hanblueblue](https://velog.io/@hanblueblue/%EB%B2%88%EC%97%AD-Layered-Architecture)
-> 이전에 보면 좋을 내용[PoEAA](https://jojoldu.tistory.com/603)
++ 참조한 블로그 [hanblueblue](https://velog.io/@hanblueblue/%EB%B2%88%EC%97%AD-Layered-Architecture)  
++ 이전에 보면 좋을 내용[PoEAA](https://jojoldu.tistory.com/603)
 
 ## 설계를 고려하는 이유
 커다란 건축물을 만들기 위해 설계도를 그리듯이, 크고 복잡한 애플리케이션을 만들 때에도 설계가 필요합니다. 설계와 설계의 검증 없이 시스템을 만들 경우 품질이 낮고, 유지보수에 비용과 시간이 비효율 적이게 됩니다. 
