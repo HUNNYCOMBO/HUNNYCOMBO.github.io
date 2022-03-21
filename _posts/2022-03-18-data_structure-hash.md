@@ -1,11 +1,8 @@
-{% if page.use_math %}
-{% include mathjax_support.html %}
-{% endif %}
 ---
 layout: single
 title:  "해시"
-categories: data_structure
-tags: [data_structure, hash_fuction, hash_collision, hash table]
+categories: 자료구조
+tags: [자료구조, hash_fuction, hash_collision, hash table]
 toc: true
 author_profile: false
 sidebar:
