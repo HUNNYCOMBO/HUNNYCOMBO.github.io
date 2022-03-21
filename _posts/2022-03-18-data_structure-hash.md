@@ -1,7 +1,7 @@
 ---
 layout: single
 title:  "해시"
-categories: 자료구조
+categories: data_structure
 tags: [자료구조, hash_fuction, hash_collision, hash table]
 toc: true
 author_profile: false
