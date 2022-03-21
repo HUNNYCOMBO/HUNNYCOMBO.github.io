@@ -4,6 +4,7 @@ title:  "Thread"
 categories: java
 tags: [java, string, thread]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"

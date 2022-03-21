@@ -4,6 +4,7 @@ title:  "토비의 스프링 vol.1 6장"
 categories: spring
 tags: [spring, AOP]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"

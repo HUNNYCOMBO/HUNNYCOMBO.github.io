@@ -4,6 +4,7 @@ title:  "토비의 스프링 vol.1 1장"
 categories: spring
 tags: [spring, 오브젝트와 의존관계]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"

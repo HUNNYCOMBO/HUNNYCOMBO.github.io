@@ -4,6 +4,7 @@ title:  "스프링의 어노테이션"
 categories: spring
 tags: [spring, 어노테이션]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"

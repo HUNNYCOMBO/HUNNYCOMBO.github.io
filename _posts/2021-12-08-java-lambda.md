@@ -4,6 +4,7 @@ title:  "람다"
 categories: java
 tags: [java, Lambda, Stream, 함수형 인터페이스]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"

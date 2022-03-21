@@ -4,6 +4,7 @@ title:  "토비의 스프링 vol.1 2장"
 categories: spring
 tags: [spring, 테스트]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"

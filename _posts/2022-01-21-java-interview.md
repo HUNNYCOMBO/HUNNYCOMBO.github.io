@@ -4,6 +4,7 @@ title:  "java 기술 면접"
 categories: java
 tags: [java, 기술면접]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"
