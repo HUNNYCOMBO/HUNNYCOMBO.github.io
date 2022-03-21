@@ -8,6 +8,7 @@ author_profile: false
 sidebar:
     nav: "docs"
 search: true
+use_math: true
 ---
 
 + 해쉬함수 전 보면 좋은 내용 [합의 알고리즘](https://steemit.com/kr/@yahweh87/1-consensus-problem)
