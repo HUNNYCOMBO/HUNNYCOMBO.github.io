@@ -10,7 +10,7 @@ sidebar:
 search: true
 use_math: true
 ---
-
+변경
 + 참조한 블로그 [chulgil](https://blog.chulgil.me/algorithm/)
 + 나무위키 big-O [나무위키](https://namu.wiki/w/%EC%A0%90%EA%B7%BC%20%ED%91%9C%EA%B8%B0%EB%B2%95#s-3)
 
