@@ -4,6 +4,7 @@ title:  "domain, DTO, entity"
 categories: spring
 tags: [spring, domain]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"
