@@ -4,6 +4,7 @@ title:  "해시"
 categories: data_structure
 tags: [자료구조, hash_fuction, hash_collision, hash table]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"
