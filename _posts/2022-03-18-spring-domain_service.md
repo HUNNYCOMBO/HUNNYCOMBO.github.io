@@ -4,6 +4,7 @@ title:  "domain service와 application(비즈니스) service"
 categories: spring
 tags: [spring, domain serviced, application service]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"
