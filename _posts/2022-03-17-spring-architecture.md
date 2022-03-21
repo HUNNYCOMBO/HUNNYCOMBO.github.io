@@ -4,6 +4,7 @@ title:  "Layered Architecture"
 categories: spring
 tags: [spring, architecture]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"
