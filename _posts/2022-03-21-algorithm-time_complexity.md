@@ -8,6 +8,7 @@ author_profile: false
 sidebar:
     nav: "docs"
 search: true
+use_math: true
 ---
 
 + 참조한 블로그 [chulgil](https://blog.chulgil.me/algorithm/)
