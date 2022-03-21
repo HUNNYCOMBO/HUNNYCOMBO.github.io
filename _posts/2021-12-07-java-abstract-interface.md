@@ -4,6 +4,7 @@ title:  "추상클래스"
 categories: java
 tags: [java, abstract, interface]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"

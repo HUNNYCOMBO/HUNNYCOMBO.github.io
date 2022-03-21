@@ -4,6 +4,7 @@ title:  "Generic"
 categories: java
 tags: [java, generic]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"

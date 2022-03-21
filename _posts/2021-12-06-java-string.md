@@ -4,6 +4,7 @@ title:  "String 클래스"
 categories: java
 tags: [java, string, equals, hashcode]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"
