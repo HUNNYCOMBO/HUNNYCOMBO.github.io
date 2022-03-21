@@ -4,6 +4,7 @@ title:  "시간복잡도"
 categories: algorithm
 tags: [시간복잡도, 알고리즘]
 toc: true
+toc_sticky : true
 author_profile: false
 sidebar:
     nav: "docs"
