@@ -12,7 +12,7 @@ search: true
 ---
 
 + [1부](https://www.youtube.com/watch?v=4Sfned8HLzk)
-+ [2부](ttps://www.youtube.com/watch?v=byR3BcrChT8)
++ [2부](https://www.youtube.com/watch?v=byR3BcrChT8)
 + [3부](https://www.youtube.com/watch?v=poKkQHUBt9A)
 
 ## Web
