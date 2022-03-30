@@ -12,12 +12,17 @@ search: true
 ---
 
 + 참조한 블로그 [heejeong Kwon](https://gmlwjd9405.github.io/2018/12/25/difference-dao-dto-entity.html)
++ 참조한 블로그 [doing7](https://doing7.tistory.com/79)
 
 ## VO
 + Value Object
 + 특정한 비즈니스 값을 담는 객체
 + read-only
 + equals()와 hashcode()를 오버라이딩 하여, 객체의 주소값이 같으면 같은 객체라고 판단하게 하는것이 핵심입니다.
++ 식별자가 없으므로 하나의 데이터(값)이라도 바뀌면 다른 객체로 판단합니다.
++ 그렇기에 불변타입으로 구현하는 것이좋습니다. setter는 구현하지 않습니다.
++ 식별자가 없으므로 db테이블과 대응될 수 없습니다.
++ 기존 객체의 데이터를 변경하고 싶다면 변경한 데이터로 새로운 객체를 만듭니다.
 
 ## DTO
 + Data Transfer Object
@@ -27,13 +32,14 @@ search: true
 
 ## entity
 + JPA에서 실제 DB테이블과 매칭될 클래스(DB테이블의 컬럼만을 필드로 갖는 클래스)
-+ doamin 로직만을 갖고 있어야합니다.
 + presetation 로직(화면 노출에 필요한 계산)을 갖고 있어서는 안됩니다.
 + @Entity, @Column, @Id 등을 이용
++ 식별자(id)를 가져서 식별자가 변경되면 다른 객체로 판단합니다.
++ db의 테이블은 실존하는 물리모델이지만, 엔티티는 개념적인 논리모델입니다.
 
 ## domain
 + 최대한 entity 클래스의 getter를 사용하지 않도록 필요한 로직을 구현합니다.
-+ 구현한 로직은 주로 application layer(service layer)에서 사용합니다.
++ 구현한 로직은 주로 application layer(service layer)에서 사용합니다.(도메인 스스로 사용 가능)
 + presentation 로직은 담지 않습니다.
 + 필드 입력에 대한 유효성 검증 등 항상 완전한 상태로 모델이 만들어지도록 합니다.
 
