@@ -1,8 +1,8 @@
 ---
 layout: single
 title:  "DDD - 도메인 주도 개발"
-categories: architecture
-tags: [spring, doamin, DDD]
+categories: spring
+tags: [spring, doamin, DDD, arichitecture]
 toc: true
 toc_sticky : true
 author_profile: false
@@ -10,6 +10,10 @@ sidebar:
     nav: "docs"
 search: true
 ---
+
+## 읽기전 보면 좋은 개념
+- [domain, VO, DTO, Entity](https://hunnycombo.github.io/spring/spring-domain_DTO/)
+- [layered architecture](https://hunnycombo.github.io/spring/spring-architecture/)
 
 ## 1. DDD
 ### 1.1 도메인
