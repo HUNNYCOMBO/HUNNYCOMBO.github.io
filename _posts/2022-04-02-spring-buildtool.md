@@ -1,5 +1,5 @@
 ---
-layout: wide
+layout: single
 title:  "spring의 빌드관리도구 - maven, gradle"
 categories: spring
 tags: [spring, maven, gradle]
