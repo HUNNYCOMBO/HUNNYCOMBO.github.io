@@ -15,6 +15,10 @@ search: true
 + [김영한 - 스프링 입문](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%EC%9E%85%EB%AC%B8-%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8/dashboard)
 + [깃허브 바로가기](https://github.com/hunnycombo/springmvc)
 
+## 자료
+[스프링 입문 - 코드로 배우는 스프링 부트, 웹 MVC, DB 접근 기술 v2021-12-01_2.pdf](https://github.com/hunnycombo/hunnycombo.github.io/files/8402673/-.MVC.DB.v2021-12-01_2.pdf)
+
+
 ## 1. 프로젝트 환경설정
 
 ### 1.1. 프로젝트 생성
