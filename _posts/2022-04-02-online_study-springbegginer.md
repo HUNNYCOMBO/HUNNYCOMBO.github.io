@@ -294,8 +294,356 @@ JSON타입으로 객체가 전달된것을 확인할 수 있습니다.
 - MemberRepository : DB가 선정되지 않아서 인터페이스로 구현 클래스를 변경할 수 있도록 설계합니다.
 - 초기 개발단계에는 가벼운 메모리기반의 DB를 사용합니다.
 
+#### src/main/domain/Member.java
+```java
+public class Member {
+    // 비즈니스 domain 객체로 관련 행위(메소드)를 가질 수 있습니다. 
+    private Long id;
+    // 시스템이 저장하는 id(db의 pk에 대응한다 봐도 무방)
+    private String name;
+    
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+
+#### /repository/Memberrepository.java
+```java
+public interface MeberRepository {
+
+    // 구체적인 클래스 명시를 피하기 위해 인터페이스로 선언합니다.
+    Member save(Member member); //회원 저장기능
+    Optional<Member> findById(Long id); // id를 이용하여 조회
+    Optional<Member> findByName(String name);   // name을 이용하여 조회
+    // Optional : java8에서 추가된 기능으로 null값을 감싸서 return합니다.
+    List<Member> findAll(); //모두 조회
+    
+}
+```
+
+#### /repository/MemoryMemberRepository.java
++ [동시성 문제](https://applepick.tistory.com/124)  
 
 
+```java
+public class MemoryMemberRepository implements MeberRepository {
 
+    private static Map<Long, Member> store = new HashMap<>();
+    // 공유되는 변수 이므로 ConcurrentHashMap을 사용해야하지만 예제이므로 사용합니다.
+    private static long sequence = 0L;
+    // 역시나 동시성 문제가 있지만 단순하게 넘어가겠습니다.
 
+    @Override
+    public Member save(Member member) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
+    @Override
+    public Optional<Member> findById(Long id) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Optional<Member> findByName(String name) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Member> findAll() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+}
+
+```
+
+#### repository/MemroyMemberRepository.java
+```java
+public class MemoryMemberRepository implements MeberRepository {
+
+    private static Map<Long, Member> store = new HashMap<>();
+    // 공유되는 변수 이므로 ConcurrentHashMap을 사용해야하지만 예제이므로 사용합니다.
+    private static long sequence = 0L;
+    // 역시나 동시성 문제가 있지만 단순하게 넘어가겠습니다.
+
+    @Override
+    public Member save(Member member) {
+        member.setId(++sequence);
+        store.put(member.getId(), member);
+        // memory 저장개념이기 때문에 정보를 map형태로 저장합니다.
+        return member;
+    }
+
+    @Override
+    public Optional<Member> findById(Long id) {
+        return Optional.ofNullable(store.get(id));
+        // null 값을 자동으로 감싸서 반환합니다.
+    }
+
+    @Override
+    public Optional<Member> findByName(String name) {
+        return store.values().stream() //람다식 루프
+                .filter(member -> member.getName().equals(name))    // 필터링
+                .findAny(); // name과 일치하는 값을 "하나라도" 찾으면 반환
+                // null일 경우 optional로 감싸져서 반환합니다.
+    }
+
+    @Override
+    public List<Member> findAll() {
+        return new ArrayList<>(store.values());
+        // loop를 돌리기 쉬워 list를 많이 사용합니다.
+    }
+```
+
+### 3.2. 회원 리포지토리 테스트 케이스 작성
+JUnit 프레임워크로 테스트를 작성합니다.  
+관례적으로 테스트하려는 클래스이름 뒤에 Test를 붙입니다.  
+
+#### test/java/practice/springmvc/repository/MemoryMemberRepositoryTest.java
+```java
+public class MemoryMemberRepositoryTest {
+ 
+    MemoryMemberRepository repository = new MemoryMemberRepository();
+    // JUnit도 프레임워크이기 때문에 bean으로 관리됩니다.
+
+    @Test   // test 메소드를 위한 JUnit 어노테이션
+    public void save() {
+        // 테스트코드를 작성하는 것은 실제 코드와 비슷합니다.
+        Member member= new Member();
+        member.setName("spring");
+        // 객체를 직접 생성해서 프로퍼티를 설정합니다.
+
+        repository.save(member);
+        Member result = repository.findById(member.getId()).get();
+        // 실제 로직이 동작하듯이 저장하고 id값으로 객체를 불러옵니다.
+        // Optional에서 가져오므로 마지막 .get메소드를 붙여 가져옵니다.
+
+        //Assertions.assertEquals(member, result);
+        // 검증을 위한 메소드로 jupiter에서 제공하는 assert입니다.
+        // 기대하는 member가 result와 같은지 비교하는 메소드입니다.
+        // 테스트를 실행해 참이면 녹색불이 나타납니다.
+
+        assertThat(member).isEqualTo(result);
+        // Assertions.assertThat(member).isEqualTo(null);
+        // 실패하는 테스트 케이스. 실패하는 모든 경우도 테스트 해야합니다.
+        // assertj에서 제공하는 좀더 편리한 메소드입니다.
+        // static으로 import해서 바로 메소드를 사용가능합니다.
+    }
+
+    @Test
+    public void findByName(){
+        Member member1= new Member();
+        member1.setName("spring1");
+        repository.save(member1);
+        
+        Member member2= new Member();
+        member2.setName("spring2");
+        repository.save(member2);
+
+        Member result = repository.findByName("spring1").get();
+
+        assertThat(result).isEqualTo(member1);
+        // "spring1"이라는 이름으로 result를 조회했으므로 member1과 같아야 합니다.
+        // assertThat(result).isEqualTo(member2);
+        // 실패하는 테스트
+    }
+```
+여기까지 테스트는 성공하게 됩니다. 하지만 아래 테스트를 추가하는 순간, findByName()의 테스트가 실패하게됩니다.  
+그 이유는** 테스트는 순서를 보장하지 않기 때문입니다.**
+
+```java
+
+    @Test
+    public void findAll(){
+
+        Member member1= new Member();
+        member1.setName("spring1");
+        repository.save(member1);
+        
+        Member member2= new Member();
+        member2.setName("spring2");
+        repository.save(member2);
+
+        List<Member> result = repository.findAll();
+
+        assertThat(result.size()).isEqualTo(2);
+        // list의 크기를 비교합니다.
+        // assertThat(result.size()).isEqualTo(1);
+        // 실패하는 테스트
+    }
+}
+```
+
+순서를 보장하지 않으므로 spring2가 저장되어 다른객체로 비교하게 되어 findByName()테스트에서 실패했습니다.(이 역시 순서는 보장되지 않으므로 다를 수 있습니다.)  
+
+#### 테스트 순서 의존을 해결하는 방법
+테스트가 끝나면 후처리를 이용해 테스트 하나가 끝나면 공용데이터를 초기화해줘야 합니다.  
+
+```java
+    // test의 MemorymemberRepositoryTest.java
+    @AfterEach  // 일종의 콜백메소드로, 메소드가 끝난 뒤 실행됩니다.
+    public void afterEach(){
+        repository.clearStore();
+    }
+    
+    // java의 MemoryMemberRepository.java
+    public void clearStore(){
+        store.clear();
+    }
+```
+
+위의 후처리르 추가하면 테스트가 성공적으로 끝납니다.  
+예제는 구현을 먼저하고 테스트를 만들었지만 반대로 하는것을 TDD(Test Driven Development)라고 합니다.  
+
+### 3.3 회원 서비스 개발
+비즈니스 로직을 구현하는 service입니다.  
+
+#### java/practice/springmvc/service/MemberService.java
+```java
+public class MemberService {
+    
+    private final MeberRepository memberRepository = new MemoryMemberRepository();
+
+    // 회원 가입 로직
+    public Long join(Member member){
+        validateSameName(member);   // 중복 검사. 중복값이 잇는 경우 예외를 던져 나갑니다.
+        memberRepository.save(member);
+        // 중복값이 없는 경우 저장합니다.
+        return member.getId();
+    }
+
+    private void validateSameName(Member member) {
+        //같은 이름 중복 x
+        memberRepository.findByName(member.getName())
+         .ifPresent(m -> { // 람다식. 값이 null이 아니면(ifPresent) 동작합니다. optional이여서 가능합니다.
+                throw new IllegalStateException("이미 존재하는 회원입니다.");
+        });
+    }
+
+    // 전체 회원 조회
+    public List<Member> findAllMembers(){
+        return memberRepository.findAll();
+    }
+
+    // 회원 조회
+    public Optional<Member> findOne(Long memberId){
+        return memberRepository.findById(memberId);
+    }
+}
+```
+
+#### 서비스 테스트 코드
+테스트 코드를 작성할 때는 given, when, then으로 구분해서 작성합니다. 주어지고(값), 실행했을 때(검증 하려는 것), 결과 (기대)라고 생각하면 됩니다.  
+서비스 테스트 코드를 작성하는데 이미 MemberService에서 필드로 있던 memberRepository를 후처리를 위해 다시 가져오게 됩니다.  
+다른 인스턴스를 사용하게 되는 것은 위험하므로, MemberService의 필드인 memberRepository에 생성자를 추가해 주입받아 사용하도록 변경합니다.  
+
+```java
+public class MemberService {
+    
+    private final MemberRepository memberRepository;
+
+    // DI받도록 변경합니다.
+    public MemberService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
+    ...
+   }
+```
+이후 테스트 코드에서 BeforEach 어노테이션을 사용해 각각의 테스트 전에 주입받도록 설정합니다.(memberrepository 인터페이스에서 추상메소드 추가 필요)  
+```java
+public class MemberServiceTest {
+
+    MemberService memberService;
+
+    // MemoryMemberRepository memberRepository = new MemoryMemberRepository();
+    // 후처리를 위해 가져온 객체이지만 이미 memberService의 프로퍼티로 같은 객체가 다른 인스턴스로 존재합니다.
+    // 물론 repository에서 static으로 선언되어 서로 다른 객체가 값을 간섭하진 않지만 거슬리게 됩니다.
+    
+    MemberRepository memberRepository;
+
+    @BeforeEach
+    public void BeforeEach(){
+        // DI
+        memberRepository = new MemoryMemberRepository();
+        memberService = new MemberService(memberRepository);
+    }
+
+    @AfterEach
+    public void afterEach(){
+        memberRepository.clearStore();
+    }
+
+    @Test
+    void testFindAllMembers() {
+
+    }
+
+    @Test
+    void testFindOne() {
+
+    }
+
+    @Test
+    void 회원가입() {
+        // given
+        Member member = new Member();
+        member.setName("spring");
+
+        // when
+        Long saveId = memberService.join(member);
+
+        // then
+        Member findMember = memberService.findOne(saveId).get();
+        assertThat(member.getName()).isEqualTo(findMember.getName());
+        // 중요한 로직인 중복회원 검사가 빠졌으므로 반쪽자리 테스트입니다.
+        
+    }
+
+    @Test
+    void 중복회원예외(){
+        // given
+        Member member1 = new Member();
+        member1.setName("spring");
+
+        Member member2 = new Member();
+        member2.setName("spring");
+
+        // when
+
+        memberService.join(member1);
+
+    /*
+        try {
+            memberService.join(member2);
+            fail(); // 테스트 실패
+        } catch (IllegalAccessException e) {
+            assertThat(e.getMessage()).isEqualTo("이미 존재하는 회원입니다.");
+            // 테스트 성공
+        }
+    */
+
+        // 위의 try/catch를 좀 더 간결하게 제공하는 assertThrows 메소드.
+        // 해당하는 클래스가 발생해야하고, 
+        assertThrows(IllegalStateException.class, () -> memberService.join(member2));
+        // 메세지 검증
+        IllegalStateException e =  assertThrows(IllegalStateException.class, () -> memberService.join(member2));
+        assertThat(e.getMessage()).isEqualTo("이미 존재하는 회원입니다.");
+    }
+}
+```
+
+### 4. 스프링 빈과 의존관계
