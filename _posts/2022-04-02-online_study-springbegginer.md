@@ -1,8 +1,8 @@
 ---
-layout: wide
+layout: single
 title:  "인프런 강의 - 코드로 배우는 스프링 부트, 웹 MVC, DB 접근 기술(김영한)"
 categories: spring
-tags: [spring, 인강]
+tags: [spring, ]
 toc: true
 toc_sticky : true
 author_profile: false
