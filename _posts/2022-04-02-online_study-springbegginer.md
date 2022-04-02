@@ -100,7 +100,7 @@ Hello
 #### controller
 웹 진입의 첫번째. 요청의 주소값에 따라 연결된 메소드를 실행시킵니다.  
 
-> main-java-group-project-SpringController.java
+#### main-java-group-project-SpringController.java
 
 ```java
 import org.springframework.stereotype.Controller;
@@ -138,7 +138,7 @@ public class SpringController {
 컨트롤러를 통해 받은 attribute이름인 data를 자동으로 attributevalue로 치환해서 나타냅니다. -->
 </body>
 </html>
-
+```
 
 #### localhost:8080/hello
 해당 주소로 템플릿엔진 페이지를 확인해봅니다.  
