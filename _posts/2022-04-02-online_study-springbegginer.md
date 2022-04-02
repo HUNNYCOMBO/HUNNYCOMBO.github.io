@@ -1,5 +1,5 @@
 ---
-layout: single
+layout: wide
 title:  "인프런 강의 - 코드로 배우는 스프링 부트, 웹 MVC, DB 접근 기술(김영한)"
 categories: spring
 tags: [spring, 인강]
@@ -58,13 +58,13 @@ dependencies {  // 선택한 라이브러리
 빌드툴은 기본적으로 한 라이브러리에 관련된 모든 의존라이브러리를 가져옵니다. 
 
 
-#### spirng boot starter
+**spirng boot starter**
 - spring-boot-srater-web의 tomcat : 내장된 was(web application server). 기존에는 따로 설치된 was에 java코드를 넣어서 사용했지만, 라이브러리가 자체적으로 was를 갖도록 발전했습니다.
 - spring-boot-starter : core, logging, spring boot 등 필요한 모든 의존관계를 가져옵니다.
 - logging의 slf4j : 로깅을 위한 인터페이스. 구현체로 log4j, logback을 갖고있습니다.
 - test : JUnit, mockito, assertj 등 테스트코드를 위한 라이브러리
   
-#### 테스트 라이브러리
+**테스트 라이브러리**
 - junit : 테스트 **프레임워크**
 - mockito : 목 라이브러리
 - assertj : 테스트코드 작성을 돕는 라이브러리
@@ -94,13 +94,13 @@ Hello
 > [스프링부트 docs](https://docs.spring.io/spring-boot/docs/2.3.1.RELEASE/reference/html/spring-boot-features.html#boot-features-spring-mvc-welcome-page)
 
 
-#### thymeleaf 템플릿 엔진
+**thymeleaf 템플릿 엔진**
 정적인 html에 동적인 기능을 부여합니다.  
 
-#### controller
+**controller**
 웹 진입의 첫번째. 요청의 주소값에 따라 연결된 메소드를 실행시킵니다.  
 
-#### main-java-group-project-SpringController.java
+**main-java-group-project-SpringController.java**
 
 ```java
 import org.springframework.stereotype.Controller;
@@ -122,7 +122,7 @@ public class SpringController {
 
 
 ```
-#### resources/templates/hello.html
+**resources/templates/hello.html**
 
 ```html
 <!DOCTYPE HTML>
@@ -140,7 +140,7 @@ public class SpringController {
 </html>
 ```
 
-#### localhost:8080/hello
+**localhost:8080/hello**
 해당 주소로 템플릿엔진 페이지를 확인해봅니다.  
 
 ![공부자료1](https://user-images.githubusercontent.com/78904413/161382032-a20a7c93-3243-49c5-9747-31a44b651c69.png)  
@@ -148,14 +148,13 @@ public class SpringController {
 위의 사진과 같이 동적인 기능을 부여하는 템플릿 엔진의 기능을 확인할 수 있습니다.  
 일반 텍스트인 "안녕하세오. 손님"은 렌더링 되지 않았습니다.  
 
-#### 그림으로 정리하기
 ![공부자료2](https://user-images.githubusercontent.com/78904413/161382119-f5e8b5e7-1830-409f-a1a9-42a1e130a905.png)  
 
 스프링부트는 기본적으로 templates폴더의 파일을 조회해서 렌더링 합니다.  
 컨트롤러에서 리턴 값으로 문자를 반환하면 뷰 리졸버가 화면을 찾아서 처리합니다.  
 resource:templates/{VieName}.html
 
-#### spring devtools 라이브러리
+**spring devtools 라이브러리**
 [mavenrepository](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools)  
 
 해당 주소로 방문하여, gardle 의존설정에 devtools를 추가하면 코드변경시 재시작 없이 변경된 페이지를 확인할 수 있습니다.  
@@ -168,13 +167,13 @@ resource:templates/{VieName}.html
 
 ![공부자료2](https://user-images.githubusercontent.com/78904413/161383561-e72c45cd-cb14-4acc-b1a0-ce7c477c6155.png)  
 
-#### 실행확인
+**실행확인**
 1. cd build/libs
 2. java -jar springmvc-0.0.1-SNAPSHOT.jar
 
 IDE의 run없이 웹어플리케이션이 동작하게됩니다.  
 
-#### ./gradlew clean
+**./gradlew clean**
 빌드를 삭제합니다.  
 
 ## 2. 스프링 웹 개발 기초
@@ -193,7 +192,7 @@ templates폴더에서 매핑된 컨트롤러가 없는 경우 static폴더에서
 model, view, controller로 분리된 방식입니다. 예전 model 1 방식의 경우 view와 controller가 분리되있지 않았습니다.  
 view는 화면을 그리는데 집중하기위해 분리하게 되었습니다. 예제를 통해 다시 한번 동적html을 보겠습니다.  
 
-#### controller
+**controller**
 ```java
  @GetMapping("hello-mvc")
     public String helloMvc(@RequestParam("name") String name, Model model){
@@ -206,7 +205,7 @@ view는 화면을 그리는데 집중하기위해 분리하게 되었습니다. 
     }
 ```
 
-#### hello-template.html
+**hello-template.html**
 ```html
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -221,7 +220,7 @@ view는 화면을 그리는데 집중하기위해 분리하게 되었습니다. 
 ### 2.3. API
 Responsbody 어노테이션을 사용하면 뷰 리졸버가 작동하지 않습니다.(==페이지를 리턴하지 않습니다.)
 
-#### ResponsBody어노테이션을 사용
+**ResponsBody어노테이션을 사용**
 - HTTP의 body에 문자 내용을 직접 반환합니다.
 - viewResolver 대신에 HttpMessageConverter가 동작합니다.
 - 문자처리는 StringHttpMessageConverter가 동작합니다.
@@ -282,19 +281,19 @@ JSON타입으로 객체가 전달된것을 확인할 수 있습니다.
 - 기능 : 회원 등록, 조회
 - 가상의 시나리오 : DB가 선정되지 안ㅇ흠
 
-#### 일반적인 웹 어플리케이션 계층 구조
+**일반적인 웹 어플리케이션 계층 구조**
 ![7](https://user-images.githubusercontent.com/78904413/161385299-021aa08a-0f33-4fa6-b78a-65cf6375ebeb.png)
 - 컨트롤러 : 웹 MVC의 컨트롤러 역할
 - 도메인객체 : 회원, 주문, 쿠폰 등 주로 데이터베이스에 저장되고 관리되는 **비즈니스 도메인 객체**
 - 서비스 : 도메인 객체를 이용하여 핵심 비즈니스 로직을 구현
 - 리포지토리 : 데이터베이스에 접근, 도메인 객체를 DB에 저장하고 관리
 
-#### 클래스 의존 관계
+**클래스 의존 관계**
 ![8](https://user-images.githubusercontent.com/78904413/161385429-04307290-3b0a-4f32-a404-86de2481faca.png)
 - MemberRepository : DB가 선정되지 않아서 인터페이스로 구현 클래스를 변경할 수 있도록 설계합니다.
 - 초기 개발단계에는 가벼운 메모리기반의 DB를 사용합니다.
 
-#### src/main/domain/Member.java
+**src/main/domain/Member.java**
 ```java
 public class Member {
     // 비즈니스 domain 객체로 관련 행위(메소드)를 가질 수 있습니다. 
@@ -317,9 +316,9 @@ public class Member {
 }
 ```
 
-#### /repository/Memberrepository.java
+**/repository/Memberrepository.java**
 ```java
-public interface MeberRepository {
+public interface MemberRepository {
 
     // 구체적인 클래스 명시를 피하기 위해 인터페이스로 선언합니다.
     Member save(Member member); //회원 저장기능
@@ -331,7 +330,7 @@ public interface MeberRepository {
 }
 ```
 
-#### /repository/MemoryMemberRepository.java
+**/repository/MemoryMemberRepository.java**
 + [동시성 문제](https://applepick.tistory.com/124)  
 
 
@@ -371,7 +370,7 @@ public class MemoryMemberRepository implements MeberRepository {
 
 ```
 
-#### repository/MemroyMemberRepository.java
+**repository/MemroyMemberRepository.java**
 ```java
 public class MemoryMemberRepository implements MeberRepository {
 
@@ -413,7 +412,7 @@ public class MemoryMemberRepository implements MeberRepository {
 JUnit 프레임워크로 테스트를 작성합니다.  
 관례적으로 테스트하려는 클래스이름 뒤에 Test를 붙입니다.  
 
-#### test/java/practice/springmvc/repository/MemoryMemberRepositoryTest.java
+**test/java/practice/springmvc/repository/MemoryMemberRepositoryTest.java**
 ```java
 public class MemoryMemberRepositoryTest {
  
@@ -490,7 +489,7 @@ public class MemoryMemberRepositoryTest {
 
 순서를 보장하지 않으므로 spring2가 저장되어 다른객체로 비교하게 되어 findByName()테스트에서 실패했습니다.(이 역시 순서는 보장되지 않으므로 다를 수 있습니다.)  
 
-#### 테스트 순서 의존을 해결하는 방법
+**테스트 순서 의존을 해결하는 방법**
 테스트가 끝나면 후처리를 이용해 테스트 하나가 끝나면 공용데이터를 초기화해줘야 합니다.  
 
 ```java
@@ -512,7 +511,7 @@ public class MemoryMemberRepositoryTest {
 ### 3.3 회원 서비스 개발
 비즈니스 로직을 구현하는 service입니다.  
 
-#### java/practice/springmvc/service/MemberService.java
+**java/practice/springmvc/service/MemberService.java**
 ```java
 public class MemberService {
     
@@ -546,7 +545,7 @@ public class MemberService {
 }
 ```
 
-#### 서비스 테스트 코드
+**서비스 테스트 코드**
 테스트 코드를 작성할 때는 given, when, then으로 구분해서 작성합니다. 주어지고(값), 실행했을 때(검증 하려는 것), 결과 (기대)라고 생각하면 됩니다.  
 서비스 테스트 코드를 작성하는데 이미 MemberService에서 필드로 있던 memberRepository를 후처리를 위해 다시 가져오게 됩니다.  
 다른 인스턴스를 사용하게 되는 것은 위험하므로, MemberService의 필드인 memberRepository에 생성자를 추가해 주입받아 사용하도록 변경합니다.  
