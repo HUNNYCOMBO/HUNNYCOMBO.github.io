@@ -16,6 +16,72 @@ search: true
 + [프로젝트 github](https://github.com/hunnycombo/lazir)
 
 
+## 1. layered architecture에 기반한 설계로 전환
+**패키지 재설계**
+- config : 유지
+- controller : presentation 패키지로 이동
+- domain : 기존에 DTO로서 가치만 있던 객체에서 비즈니스로직을 포함하도록 수정. repository와 service의 객체들을 해당 도메인 별로 구분
+- form : dto객체로 재탄생.
+- repository : domain영역으로 편집
+- service : domain 영역으로 편집
+- validator : presetation 패키지로 이동
+- dto : 기존에 domain객체를 컨트롤러(프레젠테이션 영역)에서 그대로 사용하여 역참조가 일어났으므로, dto객체를 추가
+- application : 애플리케이션 패키지를 추가, usecase를 묶는 역할을 하는 패키지.
+- infrastructure : 인프라스트럭쳐 패키지를 추가
+
+
+## 2. RESTAPI로 재설계
+
+기존의 AccountController클래스의 signUpSubmit메소드를 살펴보면 modelAttribute로 thymeleaf와 대응되는 Form객체를 그대로 리턴했습니다.  
+RESTAPI로 재설계하기 위해 **JSON으로 응답**하게 변경합니다.  
+Controller어노테이션을 RestController로 변경하고, PostMapping 메소드들의 리턴을 변경합니다.  
+파라미터로 modelAttribute로 AccoutForm객체를 받고있었는데, RequestBody 어노테이션으로 json으로 요청하도록 변경합니다.  
+리턴타입은 String으로 뷰페이지를 리턴하던 방식에서 객체를 리턴하도록 정의합니다.  
+
+ModelAttribute는 파라미터로 들어온 DTO객체에 바인딩하는 방식으로 setter 메소드가 반드시 있어야합니다.  
+RequestBody는 HttpMessageConverter를 거쳐 DTO객체에 맞는 타입으로 바꿔서 바인딩 시켜줍니다.  
+
++ [modelAttribute와 RequestBody의 차이](https://tecoble.techcourse.co.kr/post/2021-05-11-requestbody-modelattribute/)
+
+```java
+
+@Controller
+...
+public class AccountController {
+
+   @InitBinder("accountForm")  //AccountForm요청이 들어올때 binder를 거치게된다.
+   public void initBinderAccount(WebDataBinder webDataBinder){
+       webDataBinder.addValidators(AccountValidator);
+   }
+  ...
+  
+   @PostMapping("/sign-up")
+    public String signUpSubmit(@ModelAttribute @Valid AccountForm accountForm, Errors errors) {
+        if(errors.hasErrors()){
+            return "account/sign-up";
+        }
+
+        Account account = accountService.checkEmail(accountForm);
+        accountService.login(account);  //회원가입 후 자동 로그인
+        return "redirect:/";
+    }
+  
+  
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
 <details>
    <summary>미완</summary>
 -
@@ -62,7 +128,7 @@ db의 index를 왜쓰는지? . mysql의 index는 hash가 tree구조. 왜? 범위
 
 ? 스프링 transation 주의할점 어떻게 동작하는지 - AOP 프록시
                                                       
-                                                      ## 도와주신분
-                                                      ben
+ ## 도와주신분
+ ben
                                                       
-                                                      </details>
+</details>
