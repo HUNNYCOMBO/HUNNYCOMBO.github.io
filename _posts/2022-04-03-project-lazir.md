@@ -30,9 +30,9 @@ search: true
 - infrastructure : 인프라스트럭쳐 패키지를 추가
 
 
-## 2. RESTAPI로 재설계
+## 2. RESTAPI로 재설계(JSON 응답)
 
-기존의 AccountController클래스의 signUpSubmit메소드를 살펴보면 modelAttribute로 thymeleaf와 대응되는 Form객체를 그대로 리턴했습니다.  
+기존의 AccountController클래스의 signUpSubmit메소드를 살펴보면 modelAttribute로 thymeleaf와 대응되는 Form객체를 그대로 리턴했습니다.(thymeleaf에선 객체의 필드를 그대로 사용)  
 RESTAPI로 재설계하기 위해 **JSON으로 응답**하게 변경합니다.  
 Controller어노테이션을 RestController로 변경하고, PostMapping 메소드들의 리턴을 변경합니다.  
 파라미터로 modelAttribute로 AccoutForm객체를 받고있었는데, RequestBody 어노테이션으로 json으로 요청하도록 변경합니다.  
@@ -40,11 +40,13 @@ Controller어노테이션을 RestController로 변경하고, PostMapping 메소�
 
 ModelAttribute는 파라미터로 들어온 DTO객체에 바인딩하는 방식으로 setter 메소드가 반드시 있어야합니다.  
 RequestBody는 HttpMessageConverter를 거쳐 DTO객체에 맞는 타입으로 바꿔서 바인딩 시켜줍니다.  
+initbinder어노테이션(validater) 역시 수정해줍니다.
 
 + [modelAttribute와 RequestBody의 차이](https://tecoble.techcourse.co.kr/post/2021-05-11-requestbody-modelattribute/)
 
 ```java
 
+// 원문
 @Controller
 ...
 public class AccountController {
@@ -69,9 +71,37 @@ public class AccountController {
   
 }
 
+// 리팩토링
+
+  @RestController
+  ...
+  public class AccountController {
+     @PostMapping("/sign-up")
+    public SingUpResponse signUpSubmit(@RequestBody @Valid SingUpRequest accountForm, Errors errors) {
+        if(errors.hasErrors()){
+            return new SingUpResponse();
+        }
+
+      
+        return new SingUpResponse();
+    }
+  }
 ```
 
+## service에서 프레젠테이션 영역의 form객체가 역참조 되는 부분 수정
+기존 accountService의 checkEmail()를 살펴보면 파라미터로 form객체를 받고있습니다.  
+이는 layered architecture 구조에서 보면 역참조가 일어나는 상황으로, dto객체를 참조하도록 변경합니다.  
+추가적으로 메소드이름이 직관적이지 않으므로 리턴이 없는 signUp()로 변경합니다.  
 
+```java
+  @Transactional
+  public Account checkEmail(AccountForm accountForm) {
+      Account newAccount = createNewAccount(accountForm);
+      sendSignUpEmail(newAccount);
+      
+      return newAccount;
+    }
+```
 
 
 
