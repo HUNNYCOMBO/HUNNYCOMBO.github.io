@@ -997,8 +997,8 @@ public class SpringConfig {
         return new MemberService(memberRepository);
     }
 ```
-테스트를 돌리면 인터페이스에 추상 메소드만 작성했음에도 성공합니다. findByName(), findByEmailAndName()과 같은 메서드 이름만으로 CRUD기능을 제공할 뿐만 아니라,  
-페이징 기능까지 제공합니다.  
+테스트를 돌리면 인터페이스에 추상 메소드만 작성했음에도 성공합니다.(인텔리제이 무료버전이면 spa-jpa 편의기능을 제공하지 않아서 실패합니다.)  
+findByName(), findByEmailAndName()과 같은 메서드 이름만으로 CRUD기능을 제공할 뿐만 아니라, 페이징 기능까지 제공합니다.  
 복잡한 동적 쿼리는 Querydsl이라는 라이브러리를 사용합니다. Querydsl을 사용하면 쿼리를 자바 코드로 안전하게 작성할 수 있습니다.(에러 체크)  
 이 두 조합으로도 해결이 어려운 쿼리는 JPA가 제공하는 네이티브 쿼리를 사용하거나, JdbcTemplate를 사용합니다.  
 
@@ -1047,3 +1047,5 @@ public class TimeTraceAop {
 스프링 컨테이너가 포인트컷에 의해 선정된 bean을 불러올 때 실제 객체가 아닌 프록시(가짜)를 호출합니다.  
 이후 joinpoin.proceed()가 호출될 때 실제 객체를 불러옵니다.(템플릿/콜백)  
 이러한 방식은 프록시를 이용한 AOP 구현입니다.  
+
+![공부자료2](https://user-images.githubusercontent.com/78904413/162265009-e0081867-c6dc-4ddb-ab17-6de968097e4c.png)
