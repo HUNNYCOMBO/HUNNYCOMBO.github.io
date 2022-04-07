@@ -767,7 +767,98 @@ public class MemberServiceIntergrationTest {
 
 #### 6.4. 스프링 JdbcTemplate
 스프링 JdbcTemplate와 MyBatis같은 라이브러리는 JDBC API에서 본 반복 코드를 제거해줍니다. SQL문은 직접 작성해야 합니다.  
+JdbcTemplate는 쿼리 결과를 dto와 매핑해주는 콜백 메소드 RowMapper를 정의해서 사용합니다.  
+간단한 문장은 라이브러리에서 제공하는 SimpleJdbcInsert와 같은 클래스로 쿼리문 없이 메소드만으로 쿼리를 짤 수 있습니다.  
+
+구현체를 바꾸어 사용하므로 memberService의 @Service를 제거하고 직접 빈을 정의합니다.(repository 어노테이션도 제거합니다.)  
 
 ```java
+@Configuration
+public class SpringConfig {
 
+    private DataSource dataSource;
+
+    @Autowired
+    public SpringConfig(DataSource dataSource){
+        this.dataSource = dataSource;
+    }
+
+    @Bean
+    public MemberService memberService(){
+        return new MemberService(memberRepository());
+    }
+
+    @Bean
+    public MemberRepository memberRepository() {
+        return new JdbcTemplateMemberRepository(dataSource);
+        // return new MemoryMemberRepository();
+        // return new JdbcMemberRepository();
+    }
+}
 ```
+
+다음은 JdbcTemplate로 구현한 repository 코드입니다.  
+
+```java
+public class JdbcTemplateMemberRepository implements MemberRepository{
+
+    private final JdbcTemplate jdbcTemplate;
+    // 라이브러리
+
+    @Autowired  // datasorce DI
+    public JdbcTemplateMemberRepository(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+
+    @Override
+    public Member save(Member member) {
+        SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
+        jdbcInsert.withTableName("member").usingGeneratedKeyColumns("id");
+        // insert문을 만들어주는 SimpleJdbcInsert. 테이블명과 pk를 파라미터로 입력.
+        // jdbcTemplate라이브러리가 제공
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", member.getName());
+
+        Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
+        member.setId(key.longValue());
+        return member;
+    }
+
+    @Override
+    public Optional<Member> findById(Long id) {
+        List<Member> result = jdbcTemplate.query("select * from member where id = ?", memberRomMapper(), id);
+        // 결과를 rowmapper로 매핑해줘야 합니다.
+        return result.stream().findAny();
+    }
+
+    @Override
+    public Optional<Member> findByName(String name) {
+        List<Member> result = jdbcTemplate.query("select * from member where name = ?", memberRomMapper(), name);
+        return result.stream().findAny();
+    }
+
+    @Override
+    public List<Member> findAll() {
+        return jdbcTemplate.query("select * from member", memberRomMapper());
+    }
+
+    @Override
+    public void clearStore() {
+
+    }
+
+    private RowMapper<Member> memberRomMapper(){
+        return (RowMapper<Member>) (rs, rowNum) -> {
+            // 객체 생성 콜백
+            Member member = new Member();
+            member.setId(rs.getLong("id"));
+            member.setName(rs.getString("name"));
+            return member;
+        };
+    }
+}
+```
+
+#### 6.5. JPA
