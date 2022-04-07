@@ -862,3 +862,188 @@ public class JdbcTemplateMemberRepository implements MemberRepository{
 ```
 
 #### 6.5. JPA
+JPA는 반복 코드 제거는 물론이고 SQL문을 작성할 필요가 없어집니다. 관계형 데이터베이스로 객체 중심의 설계로 페러다임을 전환할 수 있습니다. JPA의 구현체인 Hibernate를 주로 사용합니다.  
+스프링 데이터 JPA관련 라이브러리를 추가합니다. JPA는 라이브러리 Jdbc를 포함하므로 Jdbc 디펜던시는 제거해도 좋습니다.  
+
+```gradle
+implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+```
+
+applicationproperties에 jpa설정을 추가합니다.  
+sql문을 보여주고, 테이블 자동생성 설정을 끕니다. create로 설정하면 엔티티에 맞춰 테이블을 생성합니다.  
+
+```xml
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=none
+```
+
+Member 클래스에 @Entity을 붙여 엔티티로 설정해줍니다.  
+
+```java
+@Entity
+public class Member {
+
+    @Id // 이 필드를 pk로 설정합니다.
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // id값을 자동 설정합니다.
+    private Long id;
+
+    // @Column(name = "username") 컬럼명 username과 대응하도록 합니다.
+    private String name;
+    
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+```
+
+이어서 JpaMemberRepository를 생성하여 메소드를 완성합니다.  
+Jpa는 EntityManager에 의해 사용됩니다. 스프링 컨테이너가 자동으로 DI해줍니다.  
+
+```java
+public class JpaMemberRepository implements MemberRepository{
+
+    private  final  EntityManager em;
+
+    @Autowired
+    public JpaMemberRepository(EntityManager em) {
+        this.em = em;
+    }
+
+    @Override
+    public Member save(Member member) {
+        em.persist(member);
+        return member;
+    }
+
+    @Override
+    public Optional<Member> findById(Long id) {
+        Member member = em.find(Member.class, id);
+        return Optional.ofNullable(member);
+    }
+
+    @Override
+    public Optional<Member> findByName(String name) {
+        // pk기반이 아닌 복수의 결과는 JPQL을 작성해야 합니다.
+        List<Member> result = em.createQuery("select m from Member m where m.name = :name", Member.class)
+                .setParameter("name", name)
+                .getResultList();
+
+        return result.stream().findAny();
+    }
+
+    @Override
+    public List<Member> findAll() {
+        return em.createQuery("select m from Member m", Member.class).getResultList();
+        // Entity객체를 대상으로 query를 보냅니다. 객체 자체 m을 select합니다.
+    }
+
+    @Override
+    public void clearStore() {
+
+    }
+}
+
+```
+
+JPA는 데이터를 저장하고 변경할 때 항상 transactional 어노테이션이 선언되 있어야합니다. memberService에 해당 어노테이션을 등록합니다.  
+springConfig에 repository DI설정을 위해 필드로 EntityManager를 둡니다. 이때 @PersistenceContext을 붙여 주입받게 합니다.  
+
+```java
+@PersistenceContext
+private EntityManager em;
+```
+
+통합테스트를 실행해 작동하는지 확인합니다.  
+
+#### 6.6. 스프링 데이터 JPA
+스프링 데이터 JPA를 사용하면 repository의 구현 클래스 없이 인터페이스 만으로 개발을 완료할 수 있습니다.  
+기본 CURD기능도 스프링 데이터 JPA가 제공합니다. 스프링 데이터 JPA는 JPA를 편리하게 해주는 도구이므로 JPA의 선행학습이 필요합니다.  
+
+JpaRepository와 memberRepository를 상속받은 SpringDataJpaMemberRepository인터페이스를 생성합니다. 스프링 데이터 JPA가 이 인터페이스를 참고해 자동으로 구현 클래스를 만들어서 bean으로 등록합니다.  
+```java
+// Entity객체와 pk의 타입을 제너릭으로 선언합니다, 다중상속으로 MemberRepository를 상속받아 오버라이드 합니다.
+public interface SpringDataJpaMemberRepository extends JpaRepository<Member, Long>, MemberRepository {
+
+    @Override
+    Optional<Member> findByName(String name);
+    // 데이터 Jpa는 메소드만으로 query를 실행합니다.
+}
+```
+
+spring config에서는 MemberRepository 필드를 두고 생성자 주입을 받으면, 스프링 데이터 JPA가 만든 구현체를 스프링 컨테이너가 DI합니다.  
+
+```java
+@Configuration
+public class SpringConfig {
+    private  final  MemberRepository memberRepository;
+
+    // @Autowired  생성자가 하나라면 생략 가능
+    public SpringConfig(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
+
+    @Bean
+    public MemberService memberService(){
+        return new MemberService(memberRepository);
+    }
+```
+테스트를 돌리면 인터페이스에 추상 메소드만 작성했음에도 성공합니다. findByName(), findByEmailAndName()과 같은 메서드 이름만으로 CRUD기능을 제공할 뿐만 아니라,  
+페이징 기능까지 제공합니다.  
+복잡한 동적 쿼리는 Querydsl이라는 라이브러리를 사용합니다. Querydsl을 사용하면 쿼리를 자바 코드로 안전하게 작성할 수 있습니다.(에러 체크)  
+이 두 조합으로도 해결이 어려운 쿼리는 JPA가 제공하는 네이티브 쿼리를 사용하거나, JdbcTemplate를 사용합니다.  
+
+**스프링 데이터 JPA가 제공하는 클래스**  
+![공부자료1](https://user-images.githubusercontent.com/78904413/162250409-958652d9-987e-4eb3-89e3-7e15b299c356.png)  
+
+### 7. AOP
+#### 7.1. AOP가 필요한 상황
+- 모든 메소드의 호출 시간을 측정하고 싶다면? : 메소드 마다 해당 로직을 작성해야 합니다.
+- 회원 가입 시간, 회원 조회 시간을 측정하고 싶다면?
+- 공통 관심 사항 vs 핵심 관심 사항
+
+시간을 측정하는 기능은 우선 핵심 관심 사항이 아닙니다. 이런 코드를 모든 메소드에 작성하게 되면 핵심 로직과 섞여서 유지보수가 어렵습니다.  
+그렇다고 별도의 공통 로직으로 만들기는 매우 어렵습니다. AOP는 이런 문제점을 해결하기 위해 공통 관심 사항과 핵심 관심 사항을 분리하기 위해 나타났습니다.  
+
+#### 7.2. AOP 적용
+AOP로 적용하기 위해서는 Aspect 어노테이션과 별도의 bean으로 등록해서 사용합니다.  
+
+```java
+@Aspect
+@Component
+public class TimeTraceAop {
+
+    @Around("execution(* practice.springmvc..*(..))")   // 포인트컷
+    public  Object execute(ProceedingJoinPoint joinPoint) throws  Throwable {
+        // 시간 트랙커 로직
+        long start = System.currentTimeMillis();
+        System.out.println("Start : " + joinPoint.toString());
+        try{
+            return joinPoint.proceed();
+        }finally {
+            long finish = System.currentTimeMillis();
+            long timeMs = finish - start;
+            System.out.println("End : " + joinPoint.toString() + timeMs + "ms");
+        }
+    }
+}
+```
+
+#### 7.3. AOP 적용 방식
+- 포인트컷 : 부가 기능을 적용할지, 안할지 필터하는 로직. 클래스와 메소드 이름으로 구분합니다.
+- 어드바이스 : 프록시 로직(부가 기능)
+- 어드바이저 : 포인트컷1개 + 어드바이스1개
+
+
+스프링 컨테이너가 포인트컷에 의해 선정된 bean을 불러올 때 실제 객체가 아닌 프록시(가짜)를 호출합니다.  
+이후 joinpoin.proceed()가 호출될 때 실제 객체를 불러옵니다.(템플릿/콜백)  
+이러한 방식은 프록시를 이용한 AOP 구현입니다.  
