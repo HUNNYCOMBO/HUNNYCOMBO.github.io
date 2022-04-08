@@ -1,7 +1,7 @@
 ---
 layout: single
 title:  "프로젝트 리팩토링 - lazir"
-categories: spring
+categories: project
 tags: [spring, project, 온라인강의]
 toc: true
 toc_sticky : true
