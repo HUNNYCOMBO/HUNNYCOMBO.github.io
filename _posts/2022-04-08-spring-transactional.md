@@ -11,6 +11,9 @@ sidebar:
 search: true
 ---
 
+## 참고링크
++ [kdhyo](https://velog.io/@kdhyo/JavaTransactional-Annotation-%EC%95%8C%EA%B3%A0-%EC%93%B0%EC%9E%90-26her30h)
+
 ## 1. 트랜잭션이 하는 일
 begin, commit, rollback를 자동으로 수행합니다.  
 
@@ -18,13 +21,13 @@ begin, commit, rollback를 자동으로 수행합니다.
 스프링에서는 간단한 선언적 트랜잭션으로 @Transactional을 메소드, 클래스, 인터페이스 위에 추가하여 사용합니다.  
 적용된 범위에서는 트랜잭션 기능이 포함된 **프록시 객체**가 생성되어 자동으로 commit 혹은 rollback을 진행합니다.  
 
-## 3. @Transactional의 옵션
+## 3. @Transactional의 attribute
 - isolation : 트랜잭션의 격리 수준을 설정합니다.
 - propagation : 해당 트랜잭션이 동작 중에 다른 트랜잭션을 호출 할 때 어떻게 처리할지 지정합니다.
 - noRollbackFor : 특정 예외 발생시 rooback하지않습니다.
 - rollbackFor : 특정 예외 발생시 rollback합니다.
-- timeout : 지정한 시간 내에 메소드 수행이 완료되지 않으면 rollback합니다.
-- readOnly : 트랜잭션을 읽기 전용으로 설정합니다.
+- timeout : 지정한 시간 내에 메소드 수행이 완료되지 않으면 rollback합니다.(default = -1)
+- readOnly : 트랜잭션을 읽기 전용으로 설정합니다.(insert, update, delete 시 예외, default = false)
 
 ### 3.1. isolation
 - Idsolation.DEFAULT : 기본 격리 수준이며 DB의 isolation Level을 따릅니다.
@@ -52,5 +55,16 @@ begin, commit, rollback를 자동으로 수행합니다.
 레벨이 높아질 수록 데이터 무결성을 유지할 수 있지만 DB의 성능은 떨어지고 비용은 높아집니다. 최대한 효율적인 방안을 찾아 상황에 맞게 사용하는 것이 중요합니다.
 
 
-### 3.2. propagation()
+### 3.2. propagation(전파속성)
+- REQUIRED : 기본값으로, 이미 진행중인 트랜잭션이 있다면 해당 트랜잭션 속성을 따르고, 진행중이 아니라면 새로운 트랜잭션을 생성합니다.
+- REQUIRES_NEW : 항상 새로운 트랜잭션을 생성합니다. 이미 진행중인 트랜잭션은 잠깐 보류하고 해당 트랜잭션을 먼저 진행합니다.
+- SUPPORT : 이미 진행 중인 트랜잭션이 있다면 해당 트랜잭션 속성을 따르고, 없다면 트랜잭션을 설정하지 않습니다.
+- NOT_SUPPORT : 이미 진행중인 트랜잭션이 있다면 보류하고, 트랜잭션을 설정하지 않고 작업을 수행합니다.
+- MANDATORY : 이미 진행중인 트랜잭션이 있어야만 작업을 수행합니다. 없다면 예외가 발생합니다.
+- NEVER : 트랜잭션이 진행중이지 않을 떄만 작업을 수행합니다. 진행중인 트랜잭션이 있다면 예외를 발생시킵니다.
+- NESTED : 진행중인 트랜잭션이 있다면 중첩된 트랜잭션이 실행됩니다. 트랜잭션이 없다면 새로운 트랜잭션을 생성합니다.
 
+### 3.3. rollbackFor = Exception.class
+@Transactional 은 기본적으로 Unchecked Exception,Error(예외처리 x, RuntimeException) 만을 rollback하고 있습니다. 그렇기 때문에 CheckedException에 대해서 rollback을 진행하고 싶을 경우 해당 어노테이션 옵션을 설정해야 합니다.  
+스프링이 런타임 에러만 rollback이 되도록 설정한 이유는, CheckedException은 반드시 throw를 하는데, 이는 호출하는 코드에서 처리를 해줘야 한다는 것을 명시한 것입니다.  
+즉, 반드시 처리되는 예외이므로 해당 트랜잭션 안에서 예외처리가 되었을 경우에는 이를 롤백 시킬 이유가 없기 떄문입니다.  
