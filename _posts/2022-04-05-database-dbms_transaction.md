@@ -7,7 +7,7 @@ toc: true
 toc_sticky : true
 author_profile: false
 sidebar:
-nav: "docs"
+  nav: "docs"
 search: true
 ---
 
