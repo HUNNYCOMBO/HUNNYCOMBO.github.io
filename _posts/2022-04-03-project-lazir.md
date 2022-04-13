@@ -106,9 +106,7 @@ public class AccountController {
 
 ## DTO 설계
 + [참고 링크](https://velog.io/@p4rksh/Spring-Boot%EC%97%90%EC%84%9C-%EA%B9%94%EB%81%94%ED%95%98%EA%B2%8C-DTO-%EA%B4%80%EB%A6%AC%ED%95%98%EA%B8%B0)
-
-
-
+- login service를 account 엔티티를 사용하던 것에서 login dto를 사용하도록 수정.
 
 
 
