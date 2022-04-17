@@ -260,6 +260,53 @@ defaults:
       author_profile: false
       share: true
 
+  # spring
+  - scope:
+      path: "spring"
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      header:
+        teaser: /assets/images/ogu/spring-ogu.jpg
+        overlay_image: /assets/images/ogu/spring-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # java
+  - scope:
+      path: "java"
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+
+  # database
+  - scope:
+      path: "database"
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+
 
 # Sass/SCSS
 sass:
