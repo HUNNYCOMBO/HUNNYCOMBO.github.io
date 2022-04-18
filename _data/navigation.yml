@@ -8,9 +8,6 @@ main:
     url : /database/
   - title : "기타 CS지식"
     url : /etc/
-    children :
-      - title : "웹"
-        url : /etc/web
   - title : "포트폴리오"
     url : /portfolio/
   - title: "카테고리 모음"
@@ -31,7 +28,7 @@ docs:
         url: /search/
 
 # spring sidebar
-spirng:
+spring:
   - title: 포스팅 분류
     children:
       - title: "스프링"
