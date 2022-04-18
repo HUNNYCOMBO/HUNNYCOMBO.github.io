@@ -7,3 +7,20 @@
 ## 주의할 점
 - 띄어쓰기는 대부분 하이픈(-)으로 작성
 - 태그는 웬만하면 한글로 적었음
+
+## overlay image에 사용하는 front matter
+```html
+header:
+  teaser: 
+  overlay_image: 
+  overlay_filter: 0.4
+  caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+```
+
+## 작성에 사용하는 front matter
+```html
+title: 
+excerpt: 
+tags:
+  -
+```
