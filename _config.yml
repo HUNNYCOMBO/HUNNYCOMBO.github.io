@@ -16,11 +16,11 @@ minimal_mistakes_skin    : "dark" # "air", "aqua", "contrast", "dark", "dirt", "
 
 # Site Settings
 locale                   : "ko-KR"
-title                    : "Lala's blog"
+title                    : "라라의 공부일지"
 title_separator          : "_"
-subtitle                 : "java stack을 공부합니다."
+subtitle                 : "java위주 back-end를 공부합니다."
 name                     : "Lala"
-description              : "back-end관련 공부를 기록합니다."
+description              : "back-end 관련 공부를 기록합니다."
 url                      : "https://lala-ogu.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
@@ -104,8 +104,8 @@ analytics:
 author:
   name             : "lala"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "93년생 비전공자입니다. 자바 스택을 공부하고 있습니다. 오구를 사랑합니다."
-  location         : "Seoul"
+  bio              : "93년생 비전공자입니다. |자바 스택을 공부하고 있습니다. |오구를 사랑합니다."
+  location         : "Seoul, Republic of Korea"
   email            : #"fkrudgns@gmail.com"
   links:
     - label: "Email"
@@ -299,7 +299,7 @@ defaults:
       path: "spring"
     values:
       layout: single
-      author_profile: true
+      author_profile: false
       categories:
         - spring
       read_time: true
@@ -324,7 +324,7 @@ defaults:
       path: "spring/book"
     values:
       layout: single
-      author_profile: true
+      author_profile: false
       categories:
         - spring-book
       read_time: true
@@ -349,7 +349,7 @@ defaults:
       path: "spring/online-study"
     values:
       layout: single
-      author_profile: true
+      author_profile: false
       categories:
         - spring-online-study
       read_time: true
@@ -376,7 +376,7 @@ defaults:
       layout: single
       categories:
         - java
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -401,7 +401,7 @@ defaults:
       layout: single
       categories:
         - java-book
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -426,7 +426,7 @@ defaults:
       layout: single
       categories:
         - java-online-study
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -451,7 +451,7 @@ defaults:
       layout: single
       categories:
         - database
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -475,9 +475,8 @@ defaults:
     values:
       layout: single
       categories:
-        - database
         - mysql
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -501,9 +500,8 @@ defaults:
     values:
       layout: single
       categories:
-        - database
         - jpa
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -528,7 +526,7 @@ defaults:
       layout: single
       categories:
         - computer-science
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -552,9 +550,8 @@ defaults:
     values:
       layout: single
       categories:
-        - etc
         - algorithm
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -578,9 +575,8 @@ defaults:
     values:
       layout: single
       categories:
-        - etc
         - network
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -604,9 +600,8 @@ defaults:
     values:
       layout: single
       categories:
-        - etc
         - datastructures
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
