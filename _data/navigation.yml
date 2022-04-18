@@ -1,8 +1,18 @@
 # main links
 main:
-  - title: "카테고리"
+  - title : "스프링"
+    url : /spring/
+  - title : "자바"
+    url : /java/
+  - title : "데이터베이스"
+    url : /database/
+  - title : "기타 CS지식"
+    url : /etc/
+  - title : "포트폴리오"
+    url : /portfolio/
+  - title: "카테고리 모음"
     url: /categories/
-  - title: "태그"
+  - title: "태그 모음"
     url: /tags/
   - title: "검색"
     url: /search/
