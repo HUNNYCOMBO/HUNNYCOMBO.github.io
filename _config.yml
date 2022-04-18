@@ -317,7 +317,7 @@ defaults:
         teaser: /assets/images/ogu/spring-ogu.jpg
         overlay_image: /assets/images/ogu/spring-ogu.jpg
         overlay_filter: 0.4
-        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"  # spring
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # spring-book default
   - scope:
@@ -326,8 +326,7 @@ defaults:
       layout: single
       author_profile: true
       categories:
-        - spring
-        - book
+        - spring-book
       read_time: true
       show_date: true
       comments: true
@@ -345,11 +344,38 @@ defaults:
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # java
+  # spring online-study default
+  - scope:
+      path: "spring/online-study"
+    values:
+      layout: single
+      author_profile: true
+      categories:
+        - spring-online-study
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "spring"
+      header:
+        teaser: /assets/images/ogu/spring-ogu.jpg
+        overlay_image: /assets/images/ogu/spring-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # java default
   - scope:
       path: "java"
     values:
       layout: single
+      categories:
+        - java
       author_profile: true
       read_time: true
       show_date: true
@@ -360,12 +386,71 @@ defaults:
       toc_sticky: true
       search: true
       use_math: true
+      sidebar:
+        nav: "java"
+      header:
+        teaser: /assets/images/ogu/java-ogu.jpg
+        overlay_image: /assets/images/ogu/java-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # database
+  # java-book default
+  - scope:
+      path: "java/book"
+    values:
+      layout: single
+      categories:
+        - java-book
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "java"
+      header:
+        teaser: /assets/images/ogu/java-ogu.jpg
+        overlay_image: /assets/images/ogu/java-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # java-book default
+  - scope:
+      path: "java/online-study"
+    values:
+      layout: single
+      categories:
+        - java-online-study
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "java"
+      header:
+        teaser: /assets/images/ogu/java-ogu.jpg
+        overlay_image: /assets/images/ogu/java-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # database default
   - scope:
       path: "database"
     values:
       layout: single
+      categories:
+        - database
       author_profile: true
       read_time: true
       show_date: true
@@ -376,5 +461,190 @@ defaults:
       toc_sticky: true
       search: true
       use_math: true
+      sidebar:
+        nav: "database"
+        header:
+          teaser: /assets/images/ogu/database-ogu.jpg
+          overlay_image: /assets/images/ogu/database-ogu.jpg
+          overlay_filter: 0.4
+          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # database-mysql default
+  - scope:
+      path: "database/mysql"
+    values:
+      layout: single
+      categories:
+        - database
+        - mysql
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "database"
+        header:
+          teaser: /assets/images/ogu/database-ogu.jpg
+          overlay_image: /assets/images/ogu/database-ogu.jpg
+          overlay_filter: 0.4
+          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # database-jpa default
+  - scope:
+      path: "database/jpa"
+    values:
+      layout: single
+      categories:
+        - database
+        - jpa
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "database"
+        header:
+          teaser: /assets/images/ogu/database-ogu.jpg
+          overlay_image: /assets/images/ogu/database-ogu.jpg
+          overlay_filter: 0.4
+          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # computer-science default
+  - scope:
+      path: "computer-science"
+    values:
+      layout: single
+      categories:
+        - computer-science
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "computer-science"
+        header:
+          teaser: /assets/images/ogu/computer-science-ogu.jpg
+          overlay_image: /assets/images/ogu/computer-science-ogu.jpg
+          overlay_filter: 0.4
+          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # computer-science/algorithm default
+  - scope:
+      path: "computer-science/algorithm"
+    values:
+      layout: single
+      categories:
+        - etc
+        - algorithm
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "computer-science"
+        header:
+          teaser: /assets/images/ogu/algorithm-ogu.jpg
+          overlay_image: /assets/images/ogu/algorithm-ogu.jpg
+          overlay_filter: 0.4
+          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # computer-science/network default
+  - scope:
+      path: "computer-science/network"
+    values:
+      layout: single
+      categories:
+        - etc
+        - network
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "computer-science"
+        header:
+          teaser: /assets/images/ogu/network-ogu.jpg
+          overlay_image: /assets/images/ogu/network-ogu.jpg
+          overlay_filter: 0.4
+          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # computer-science/datastructures default
+  - scope:
+      path: "computer-science/datastructures"
+    values:
+      layout: single
+      categories:
+        - etc
+        - datastructures
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "computer-science"
+        header:
+          teaser: /assets/images/ogu/datastructures-ogu.jpg
+          overlay_image: /assets/images/ogu/datastructures-ogu.jpg
+          overlay_filter: 0.4
+          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # portfolio default
+  - scope:
+      path: "portfolio"
+    values:
+      layout: single
+      categories:
+        - portfolio
+      author_profile: true
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+        header:
+          teaser: /assets/images/ogu/portfolio-ogu.jpg
+          overlay_image: /assets/images/ogu/portfolio-ogu.jpg
+          overlay_filter: 0.4
+          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
 date_format: "%Y-%m-%d"

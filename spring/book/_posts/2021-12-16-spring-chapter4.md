@@ -1,13 +1,7 @@
 ---
-layout: single
 title:  "토비의 스프링 vol.1 4장"
 excerpt: "토비의 스프링4장 예외처리 입니다."
-categories: spring
-tags: [spring, 예외]
-toc: true
-toc_sticky : true
-author_profile: false
-search: true
+tags: [예외]
 ---
 
 ## 예외

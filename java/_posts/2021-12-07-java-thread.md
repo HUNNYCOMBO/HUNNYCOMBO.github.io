@@ -1,15 +1,7 @@
 ---
-layout: single
-title:  "Thread"
-categories: java
-tags: [java, string, thread]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
-
+title:  "쓰레드"
+tags: [쓰레드]
+excerpt: "쓰레드에 대해 알아봅니다."
 ---
 
 ## Thread

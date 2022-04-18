@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "DBMS가 제공하는 트랜잭션"
-categories: database
-tags: [database, dbms, transaction]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-  nav: "docs"
-search: true
+tags: [트랜잭션]
+excerpt: "데이터베이스 관리 시스템이 제공하는 트랜잭션에 대해 알아봅니다."
 ---
 
 ## 참고링크

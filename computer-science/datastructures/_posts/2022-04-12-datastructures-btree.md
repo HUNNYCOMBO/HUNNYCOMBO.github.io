@@ -1,15 +1,7 @@
 ---
-layout: single
 title:  "B-Tree 구조"
-categories: datastructure
-tags: [datastructure, B-Tree]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
-use_math: true
+tags: [b-tree]
+excerpt: mysql index 구조로 사용되는 b-tree에 대해 알아봅니다.
 ---
 
 ## 참고링크

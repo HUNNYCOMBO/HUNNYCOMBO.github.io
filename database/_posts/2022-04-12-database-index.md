@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "index - 클러스터/비클러스터"
-categories: database
-tags: [index, database]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+tags: [인덱스]
+excerpt: "DB에서 사용하는 인덱스에 대해 알아봅니다."
 ---
 
 ## 1. index란?

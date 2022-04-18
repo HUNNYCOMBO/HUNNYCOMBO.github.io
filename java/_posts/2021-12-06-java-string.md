@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "String 클래스"
-categories: java
-tags: [java, string, equals, hashcode]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+excerpt: "String클래스의 특징과 ==비교 연산자를 사용하면 안되는 이유를 알아봅니다."
+tags: [string, equals, hashcode]
 ---
 
 ## String 클래스

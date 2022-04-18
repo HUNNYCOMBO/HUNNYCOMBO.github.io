@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "초창기 웹 서비스 구조 - 유튜브 강의(널널한 개발자 TV)"
-categories: web
-tags: [web, 온라인강의]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+tags: [web]
+excerpt: "web의 작동방식에 대해 고전부터 현재까지 알아봅니다."
 ---
 
 + [1부](https://www.youtube.com/watch?v=4Sfned8HLzk)

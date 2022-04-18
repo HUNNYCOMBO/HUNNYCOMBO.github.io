@@ -1,15 +1,7 @@
 ---
-layout: single
-title:  "람다"
-categories: java
-tags: [java, Lambda, Stream, 함수형 인터페이스]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
-
+title:  "람다와 스트림"
+tags: [람다, Stream, 함수형 인터페이스]
+excerpt: "자바8에 추가된 람다와 스트림에 대해 알아봅니다."
 ---
 
 ## 람다

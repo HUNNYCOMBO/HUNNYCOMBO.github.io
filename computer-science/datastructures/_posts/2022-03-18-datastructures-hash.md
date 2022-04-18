@@ -1,15 +1,7 @@
 ---
-layout: single
 title:  "해시"
-categories: data_structure
-tags: [자료구조, hash_fuction, hash_collision, hash table]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
-use_math: true
+tags: [해시 함수, 해시 충돌, 해시 테이블, 해시]
+excerpt: "1:1 검색에 사용되는 해시에 대해 알아봅니다."
 ---
 
 + 해쉬함수 전 보면 좋은 내용 [합의 알고리즘](https://steemit.com/kr/@yahweh87/1-consensus-problem)

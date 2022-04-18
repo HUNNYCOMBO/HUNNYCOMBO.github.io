@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "추상클래스"
-categories: java
-tags: [java, abstract, interface]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+tags: [abstract, interface, 추상화]
+excerpt : "상속과 추상클래스의 차이를 알아봅니다."
 ---
 
 ## abstract와 interface

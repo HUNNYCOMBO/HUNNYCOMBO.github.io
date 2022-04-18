@@ -36,7 +36,40 @@ spring:
       - title: "스프링-책"
         url : /spring/book/
       - title: "스프링-온라인강의"
-        url : /spring/onlinestudy/
+        url : /spring/online-study/
+
+# java sidebar
+java:
+  - title: 포스팅 분류
+    children:
+      - title: "자바"
+        url : /java/
+      - title: "자바-책"
+        url : /java/book/
+      - title: "자바-온라인강의"
+        url : /java/online-study/
+
+# database sidebar
+database:
+  - title: 포스팅 분류
+    children:
+      - title: "DBMS"
+        url : /database/
+      - title: "mysql"
+        url : /database/mysql/
+      - title: "jpa"
+        url : /database/jpa/
+
+# computer-science sidebar
+computer-science:
+  - title: 포스팅 분류
+    children:
+      - title: "알고리즘"
+        url : /computer-science/algorithm
+      - title: "자료구조"
+        url : /computer-science/datastructures/
+      - title: "네트워크"
+        url : /computer-science/network/
 
 
   # - title: "About"

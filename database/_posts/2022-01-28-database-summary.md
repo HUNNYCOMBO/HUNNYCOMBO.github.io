@@ -1,14 +1,7 @@
 ---
-layout: single
-title:  "SQL 정리"
-categories: SQL
-tags: [SQL]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+title: "DB의 중요한 개념 요약"
+tags: [sql, 트랜잭션]
+excerpt: "DB의 중요한 개념들을 요약하여 정리합니다."
 ---
 
 ### 명렁어 종류

@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "java 기술 면접"
-categories: java
-tags: [java, 기술면접]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+tags: [기술면접]
+excerpt: "면접대비용 단골 cs지식에 대해 알아봅니다."
 ---
 
 - OOP의 4가지 특징

@@ -1,13 +1,7 @@
 ---
-layout: single
 title:  "스프링의 어노테이션"
 excerpt: "스프링에서 자주 사용되는 어노테이션에 대해 알아봅니다."
-categories: spring
-tags: [spring, 어노테이션]
-toc: true
-toc_sticky : true
-author_profile: false
-search: true
+tags: [어노테이션]
 ---
 
 ## @SpringBootApplication

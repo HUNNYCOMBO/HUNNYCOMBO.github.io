@@ -1,14 +1,6 @@
 ---
-layout: single
 title:  "프로젝트 리팩토링 - lazir"
-categories: project
-tags: [spring, project, 온라인강의]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+excerpt: "모임관리 웹사이트(백기선님 강의 참고)"
 ---
 
 ## 링크

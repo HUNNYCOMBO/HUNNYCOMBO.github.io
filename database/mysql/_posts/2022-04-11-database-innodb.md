@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "MySQL의 스토리지 엔진 - InnoDB"
-categories: database
-tags: [mysql, innodb]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+tags: [innodb]
+excerpt: "InnoDB에 대해 알아봅니다."
 ---
 
 ## 참고링크

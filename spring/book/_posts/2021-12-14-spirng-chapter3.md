@@ -1,13 +1,7 @@
 ---
-layout: single
 title:  "토비의 스프링 vol.1 3장"
 excerpt: "토비의 스프링3장 템플릿입니다."
-categories: spring
-tags: [spring, 템플릿]
-toc: true
-toc_sticky : true
-author_profile: false
-search: true
+tags: [템플릿]
 ---
 
 ## 템플릿

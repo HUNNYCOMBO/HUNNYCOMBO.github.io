@@ -1,15 +1,7 @@
 ---
-layout: single
 title:  "시간복잡도"
-categories: algorithm
-tags: [시간복잡도, 알고리즘]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
-use_math: true
+tags: [시간복잡도, 빅오]
+excerpt: "연산 수행의 성능을 나타내는 빅오표기법에 대해 알아봅니다."
 ---
 
 + 참조한 블로그 [chulgil](https://blog.chulgil.me/algorithm/)

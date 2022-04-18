@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "커버링 인덱스"
-categories: database
-tags: [database, covering_index]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+tags: [커버링 인덱스]
+excerpt: "mysql에서 주로 사용하는 커버링 인덱스에 대해 알아봅니다."
 ---
 
 ## 참고 링크

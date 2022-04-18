@@ -1,13 +1,7 @@
 ---
-layout: single
 title:  "인프런 강의 - 코드로 배우는 스프링 부트, 웹 MVC, DB 접근 기술(김영한)"
 excerpt: "김영한님의 스프링부트 입문 강좌 입니다."
-categories: spring
-tags: [spring, 온라인강의]
-toc: true
-toc_sticky : true
-author_profile: false
-search: true
+tags: [MVC패턴]
 ---
 
 ## 링크

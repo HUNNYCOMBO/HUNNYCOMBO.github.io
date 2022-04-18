@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "객채지향의 원리 - SOLID"
-categories: java
-tags: [java, solid, oop]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+tags: [solid, oop]
+excerpt: "자바의 핵심 객체지향에 대해 알아봅니다."
 ---
 
 ## 참조

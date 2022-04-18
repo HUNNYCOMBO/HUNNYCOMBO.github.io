@@ -1,14 +1,7 @@
 ---
-layout: single
-title:  "Generic"
-categories: java
-tags: [java, generic]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+title:  "제네릭"
+tags: [제네릭]
+excerpt: "제네릭에 대해 알아봅니다."
 ---
 
 ## Generic

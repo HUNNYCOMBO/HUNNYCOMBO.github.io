@@ -1,14 +1,7 @@
 ---
-layout: single
 title:  "TCP 송/수신 원리 - 유튜브 강의(널널한 개발자 TV)"
-categories: network
-tags: [네트워크, 온라인강의, TCP/IP]
-toc: true
-toc_sticky : true
-author_profile: false
-sidebar:
-    nav: "docs"
-search: true
+tags: [tcp/ip]
+excerpt: "널널한 개발자님의 강의 tcp/ip통신의 과정에 대해 알아봅니다."
 ---
 ## 링크
 + [널널한 개발자 TV](https://www.youtube.com/watch?v=K9L9YZhEjC0)

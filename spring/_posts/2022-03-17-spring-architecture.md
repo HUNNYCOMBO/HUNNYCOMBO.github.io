@@ -1,13 +1,7 @@
 ---
-layout: single
 title:  "Layered Architecture"
 excerpt: "스프링의 대표적인 레이어드 아키텍처에 대해 알아봅니다."
-categories: spring
-tags: [spring, architecture]
-toc: true
-toc_sticky : true
-author_profile: false
-search: true
+tags: [설계]
 ---
 
 + 참조한 블로그 [hanblueblue](https://velog.io/@hanblueblue/%EB%B2%88%EC%97%AD-Layered-Architecture)  

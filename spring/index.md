@@ -4,6 +4,5 @@ excerpt: "다른 블로그, 책, 온라인 강의 등 스프링에 대해 공부
 layout: category
 taxonomy: "spring"
 entries_layout: grid
-author_profile: false
 classes: wide
 ---

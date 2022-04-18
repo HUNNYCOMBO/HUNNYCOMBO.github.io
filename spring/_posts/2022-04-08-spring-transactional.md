@@ -1,13 +1,7 @@
 ---
-layout: single
 title:  "스프링의 @Transactional"
 excerpt: "스프링의 Trasactional 어노테이션의 속성에 대해 알아봅니다."
-categories: spring
-tags: [spring, annotation, transaction]
-toc: true
-toc_sticky : true
-author_profile: false
-search: true
+tags: [어노테이션, 트랜잭션]
 ---
 
 ## 참고링크

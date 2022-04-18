@@ -1,13 +1,7 @@
 ---
-layout: single
 title:  "spring의 빌드관리도구 - maven, gradle"
 excerpt: "스프링의 빌드관리도구에 대해 알아봅니다."
-categories: spring
-tags: [spring, maven, gradle]
-toc: true
-toc_sticky : true
-author_profile: false
-search: true
+tags: [maven, gradle]
 ---
 
 ## 1. 빌드
