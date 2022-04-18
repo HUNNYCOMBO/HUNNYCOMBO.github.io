@@ -289,8 +289,12 @@ defaults:
       share: true
       related: true
       show_date: true
+      toc: true
+      toc_sticky : true
+      search: true
+      use_math: true
 
-  # spring
+  # spring default
   - scope:
       path: "spring"
     values:
@@ -305,6 +309,8 @@ defaults:
       related: true
       toc: true
       toc_sticky: true
+      search: true
+      use_math: true
       sidebar:
         nav: "spring"
       header:
@@ -313,7 +319,7 @@ defaults:
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"  # spring
 
-  # spring-book
+  # spring-book default
   - scope:
       path: "spring/book"
     values:
@@ -329,6 +335,8 @@ defaults:
       related: true
       toc: true
       toc_sticky: true
+      search: true
+      use_math: true
       sidebar:
         nav: "spring"
       header:
@@ -350,6 +358,8 @@ defaults:
       related: true
       toc: true
       toc_sticky: true
+      search: true
+      use_math: true
 
   # database
   - scope:
@@ -364,5 +374,7 @@ defaults:
       related: true
       toc: true
       toc_sticky: true
+      search: true
+      use_math: true
 
 date_format: "%Y-%m-%d"
