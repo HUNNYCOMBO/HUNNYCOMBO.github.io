@@ -463,11 +463,11 @@ defaults:
       use_math: true
       sidebar:
         nav: "database"
-        header:
-          teaser: /assets/images/ogu/database-ogu.jpg
-          overlay_image: /assets/images/ogu/database-ogu.jpg
-          overlay_filter: 0.4
-          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+      header:
+        teaser: /assets/images/ogu/database-ogu.jpg
+        overlay_image: /assets/images/ogu/database-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # database-mysql default
   - scope:
@@ -489,11 +489,11 @@ defaults:
       use_math: true
       sidebar:
         nav: "database"
-        header:
-          teaser: /assets/images/ogu/database-ogu.jpg
-          overlay_image: /assets/images/ogu/database-ogu.jpg
-          overlay_filter: 0.4
-          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+      header:
+        teaser: /assets/images/ogu/database-ogu.jpg
+        overlay_image: /assets/images/ogu/database-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # database-jpa default
   - scope:
@@ -515,11 +515,11 @@ defaults:
       use_math: true
       sidebar:
         nav: "database"
-        header:
-          teaser: /assets/images/ogu/database-ogu.jpg
-          overlay_image: /assets/images/ogu/database-ogu.jpg
-          overlay_filter: 0.4
-          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+      header:
+        teaser: /assets/images/ogu/database-ogu.jpg
+        overlay_image: /assets/images/ogu/database-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # computer-science default
   - scope:
@@ -540,11 +540,11 @@ defaults:
       use_math: true
       sidebar:
         nav: "computer-science"
-        header:
-          teaser: /assets/images/ogu/computer-science-ogu.jpg
-          overlay_image: /assets/images/ogu/computer-science-ogu.jpg
-          overlay_filter: 0.4
-          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+      header:
+        teaser: /assets/images/ogu/computer-science-ogu.jpg
+        overlay_image: /assets/images/ogu/computer-science-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # computer-science/algorithm default
   - scope:
@@ -566,11 +566,11 @@ defaults:
       use_math: true
       sidebar:
         nav: "computer-science"
-        header:
-          teaser: /assets/images/ogu/algorithm-ogu.jpg
-          overlay_image: /assets/images/ogu/algorithm-ogu.jpg
-          overlay_filter: 0.4
-          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+      header:
+        teaser: /assets/images/ogu/algorithm-ogu.jpg
+        overlay_image: /assets/images/ogu/algorithm-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # computer-science/network default
   - scope:
@@ -592,11 +592,11 @@ defaults:
       use_math: true
       sidebar:
         nav: "computer-science"
-        header:
-          teaser: /assets/images/ogu/network-ogu.jpg
-          overlay_image: /assets/images/ogu/network-ogu.jpg
-          overlay_filter: 0.4
-          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+      header:
+        teaser: /assets/images/ogu/network-ogu.jpg
+        overlay_image: /assets/images/ogu/network-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # computer-science/datastructures default
   - scope:
@@ -618,11 +618,11 @@ defaults:
       use_math: true
       sidebar:
         nav: "computer-science"
-        header:
-          teaser: /assets/images/ogu/datastructures-ogu.jpg
-          overlay_image: /assets/images/ogu/datastructures-ogu.jpg
-          overlay_filter: 0.4
-          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+      header:
+        teaser: /assets/images/ogu/datastructures-ogu.jpg
+        overlay_image: /assets/images/ogu/datastructures-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # portfolio default
   - scope:
@@ -641,10 +641,10 @@ defaults:
       toc_sticky: true
       search: true
       use_math: true
-        header:
-          teaser: /assets/images/ogu/portfolio-ogu.jpg
-          overlay_image: /assets/images/ogu/portfolio-ogu.jpg
-          overlay_filter: 0.4
-          caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+      header:
+        teaser: /assets/images/ogu/portfolio-ogu.jpg
+        overlay_image: /assets/images/ogu/portfolio-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
 date_format: "%Y-%m-%d"
