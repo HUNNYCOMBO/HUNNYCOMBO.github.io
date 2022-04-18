@@ -6,8 +6,8 @@ main:
     url : /java/
   - title : "데이터베이스"
     url : /database/
-  - title : "기타 CS지식"
-    url : /etc/
+  - title : "기타 cs지식"
+    url : /computer-science/
   - title : "포트폴리오"
     url : /portfolio/
   - title: "카테고리 모음"
@@ -64,6 +64,8 @@ database:
 computer-science:
   - title: 포스팅 분류
     children:
+      - title: "기타 cs지식"
+        url : /computer-science/
       - title: "알고리즘"
         url : /computer-science/algorithm
       - title: "자료구조"
