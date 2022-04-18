@@ -18,7 +18,7 @@ minimal_mistakes_skin    : "dark" # "air", "aqua", "contrast", "dark", "dirt", "
 locale                   : "ko-KR"
 title                    : "라라의 공부일지"
 title_separator          : "_"
-subtitle                 : "java위주 back-end를 공부합니다."
+subtitle                 : "비전공자이지만 백엔드 개발을 하고싶어"
 name                     : "Lala"
 description              : "back-end 관련 공부를 기록합니다."
 url                      : "https://lala-ogu.github.io"
@@ -104,7 +104,7 @@ analytics:
 author:
   name             : "lala"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "93년생 비전공자입니다. |자바 스택을 공부하고 있습니다. |오구를 사랑합니다."
+  bio              : "in 1993 |java stack |I LOVE OGU "
   location         : "Seoul, Republic of Korea"
   email            : #"fkrudgns@gmail.com"
   links:
