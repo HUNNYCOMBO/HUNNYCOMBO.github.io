@@ -102,10 +102,10 @@ analytics:
 
 # Site Author
 author:
-  name             : "lala"
+  name             : "Lala"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "in 1993 |java stack |I LOVE OGU "
-  location         : "Seoul, Republic of Korea"
+  bio              : "in 1993 |java stack |love ogu "
+  location         : "Seoul"
   email            : #"fkrudgns@gmail.com"
   links:
     - label: "Email"
