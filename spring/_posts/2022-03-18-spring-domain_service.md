@@ -1,13 +1,12 @@
 ---
 layout: single
 title:  "domain service와 application(비즈니스) service"
+excerpt: "도메인 계층의 로직과 애플리케이션 계층의 로직의 차이점을 알아봅니다."
 categories: spring
 tags: [spring, domain serviced, application service]
 toc: true
 toc_sticky : true
 author_profile: false
-sidebar:
-    nav: "docs"
 search: true
 ---
 

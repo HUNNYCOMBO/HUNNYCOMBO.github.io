@@ -1,13 +1,12 @@
 ---
 layout: single
 title:  "토비의 스프링 vol.1 2장"
+excerpt: "토비의 스프링 2장 테스트 입니다."
 categories: spring
 tags: [spring, 테스트]
 toc: true
 toc_sticky : true
 author_profile: false
-sidebar:
-    nav: "docs"
 search: true
 ---
 

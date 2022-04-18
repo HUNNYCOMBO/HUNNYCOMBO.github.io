@@ -1,13 +1,12 @@
 ---
 layout: single
 title:  "토비의 스프링 vol.1 7장"
+excerpt: "토비의 스프링 7장 스프링 핵심 기술의 응용 입니다."
 categories: spring
 tags: [spring, 스프링 핵심 기술의 응용]
 toc: true
 toc_sticky : true
 author_profile: false
-sidebar:
-    nav: "docs"
 search: true
 ---
 

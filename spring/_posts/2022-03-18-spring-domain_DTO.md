@@ -1,13 +1,12 @@
 ---
 layout: single
 title:  "domain, DTO, entity"
+excerpt: "개념이 비슷한 도메인, DTO의 차이를 알아봅니다."
 categories: spring
 tags: [spring, domain]
 toc: true
 toc_sticky : true
 author_profile: false
-sidebar:
-    nav: "docs"
 search: true
 ---
 

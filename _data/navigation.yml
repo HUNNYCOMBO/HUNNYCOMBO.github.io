@@ -22,13 +22,26 @@ main:
 
 docs:
   - title: "네비게이션"
-    children: 
+    children:
       - title: "카테고리"
         url: /categories/
       - title: "태그"
         url: /tags/
       - title: "검색"
         url: /search/
+
+# spring sidebar
+spirng:
+  - title: 포스팅 분류
+    children:
+      - title: "스프링"
+        url : /spring/
+      - title: "스프링-책"
+        url : /spring/book/
+      - title: "스프링-온라인강의"
+        url : /spring/onlinestudy/
+
+
   # - title: "About"
   #   url: https://mmistakes.github.io/minimal-mistakes/about/
   # - title: "Sample Posts"

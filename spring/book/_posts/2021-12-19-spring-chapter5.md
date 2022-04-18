@@ -1,13 +1,12 @@
 ---
 layout: single
 title:  "토비의 스프링 vol.1 5장"
+excerpt: "토비의 스프링 5장 서비스 추상화입니다."
 categories: spring
 tags: [spring, 서비스 추상화]
 toc: true
 toc_sticky : true
 author_profile: false
-sidebar:
-    nav: "docs"
 search: true
 ---
 

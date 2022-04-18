@@ -1,7 +1,7 @@
 ---
 layout: single
 title:  "DBMS가 제공하는 트랜잭션"
-categories: spring
+categories: database
 tags: [database, dbms, transaction]
 toc: true
 toc_sticky : true

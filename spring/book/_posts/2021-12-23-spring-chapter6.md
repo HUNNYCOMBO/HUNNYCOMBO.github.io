@@ -1,13 +1,12 @@
 ---
 layout: single
 title:  "토비의 스프링 vol.1 6장"
+excerpt: "토비의 스프링 6장 AOP입니다."
 categories: spring
 tags: [spring, AOP]
 toc: true
 toc_sticky : true
 author_profile: false
-sidebar:
-    nav: "docs"
 search: true
 ---
 

@@ -18,7 +18,7 @@ minimal_mistakes_skin    : "dark" # "air", "aqua", "contrast", "dark", "dirt", "
 locale                   : "ko-KR"
 title                    : "Lala's blog"
 title_separator          : "_"
-subtitle                 : "java, spring을 공부합니다."
+subtitle                 : "java stack을 공부합니다."
 name                     : "Lala"
 description              : "back-end관련 공부를 기록합니다."
 url                      : "https://lala-ogu.github.io"
@@ -104,7 +104,7 @@ analytics:
 author:
   name             : "lala"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "93년생 비전공자입니다. I LOVE OGU"
+  bio              : "93년생 비전공자입니다. 자바 스택을 공부하고 있습니다. 오구를 사랑합니다."
   location         : "Seoul"
   email            : #"fkrudgns@gmail.com"
   links:
@@ -289,7 +289,7 @@ defaults:
       share: true
       related: true
       show_date: true
-      
+
   # spring
   - scope:
       path: "spring"
@@ -303,6 +303,8 @@ defaults:
       related: true
       toc: true
       toc_sticky: true
+      sidebar:
+        nav: "spring"
       header:
         teaser: /assets/images/ogu/spring-ogu.jpg
         overlay_image: /assets/images/ogu/spring-ogu.jpg
