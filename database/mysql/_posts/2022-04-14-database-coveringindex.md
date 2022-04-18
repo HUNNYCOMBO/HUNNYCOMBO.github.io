@@ -20,3 +20,4 @@ MySQL의 경우 index 안에 포함된 데이터를 사용할 수 있으므로 �
 
 ### 1.2. Clustered Key(PK) / Non Clustered Key(일반적인 인덱스)
 클러스터 
+미완
