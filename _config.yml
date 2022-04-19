@@ -303,14 +303,36 @@ defaults:
       search: true
       use_math: true
 
+
   # spring default
   - scope:
       path: "spring"
     values:
       layout: single
       author_profile: false
-      categories:
-        - spring
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "spring"
+      header:
+        teaser: /assets/images/ogu/spring-ogu.jpg
+        overlay_image: /assets/images/ogu/spring-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # spring-study default
+  - scope:
+      path: "spring/spring-study"
+    values:
+      layout: single
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -330,12 +352,10 @@ defaults:
 
   # spring-book default
   - scope:
-      path: "spring/book"
+      path: "spring/spring-book"
     values:
       layout: single
       author_profile: false
-      categories:
-        - spring-book
       read_time: true
       show_date: true
       comments: true
@@ -353,14 +373,12 @@ defaults:
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # spring online-study default
+  # spring onlineclass default
   - scope:
-      path: "spring/online-study"
+      path: "spring/onlineclass"
     values:
       layout: single
       author_profile: false
-      categories:
-        - spring-online-study
       read_time: true
       show_date: true
       comments: true
@@ -383,8 +401,29 @@ defaults:
       path: "java"
     values:
       layout: single
-      categories:
-        - java
+      author_profile: false
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "java"
+      header:
+        teaser: /assets/images/ogu/java-ogu.jpg
+        overlay_image: /assets/images/ogu/java-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # java-study default
+  - scope:
+      path: "java-study"
+    values:
+      layout: single
       author_profile: false
       read_time: true
       show_date: true
@@ -405,11 +444,9 @@ defaults:
 
   # java-book default
   - scope:
-      path: "java/book"
+      path: "java/java-book"
     values:
       layout: single
-      categories:
-        - java-book
       author_profile: false
       read_time: true
       show_date: true
@@ -430,11 +467,9 @@ defaults:
 
   # java-book default
   - scope:
-      path: "java/online-study"
+      path: "java/java-onlineclass"
     values:
       layout: single
-      categories:
-        - java-online-study
       author_profile: false
       read_time: true
       show_date: true
@@ -453,13 +488,11 @@ defaults:
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # database default
+  # dbms default
   - scope:
-      path: "database"
+      path: "dbms"
     values:
       layout: single
-      categories:
-        - database
       author_profile: false
       read_time: true
       show_date: true
@@ -471,20 +504,18 @@ defaults:
       search: true
       use_math: true
       sidebar:
-        nav: "database"
+        nav: "dbms"
       header:
         teaser: /assets/images/ogu/database-ogu.jpg
         overlay_image: /assets/images/ogu/database-ogu.jpg
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # database-mysql default
+  # dbms-study default
   - scope:
-      path: "database/mysql"
+      path: "dbms/dbms-study"
     values:
       layout: single
-      categories:
-        - mysql
       author_profile: false
       read_time: true
       show_date: true
@@ -496,20 +527,18 @@ defaults:
       search: true
       use_math: true
       sidebar:
-        nav: "database"
+        nav: "dbms"
       header:
         teaser: /assets/images/ogu/database-ogu.jpg
         overlay_image: /assets/images/ogu/database-ogu.jpg
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # database-jpa default
+  # dbms-mysql default
   - scope:
-      path: "database/jpa"
+      path: "dbms/mysql"
     values:
       layout: single
-      categories:
-        - jpa
       author_profile: false
       read_time: true
       show_date: true
@@ -521,20 +550,18 @@ defaults:
       search: true
       use_math: true
       sidebar:
-        nav: "database"
+        nav: "dbms"
       header:
         teaser: /assets/images/ogu/database-ogu.jpg
         overlay_image: /assets/images/ogu/database-ogu.jpg
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # computer-science default
+  # dbms-jpa default
   - scope:
-      path: "computer-science"
+      path: "dbms/jpa"
     values:
       layout: single
-      categories:
-        - computer-science
       author_profile: false
       read_time: true
       show_date: true
@@ -546,20 +573,41 @@ defaults:
       search: true
       use_math: true
       sidebar:
-        nav: "computer-science"
+        nav: "dbms"
+      header:
+        teaser: /assets/images/ogu/database-ogu.jpg
+        overlay_image: /assets/images/ogu/database-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # cs default
+  - scope:
+      path: "cs"
+    values:
+      layout: single
+      author_profile: false
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "cs"
       header:
         teaser: /assets/images/ogu/computer-science-ogu.jpg
         overlay_image: /assets/images/ogu/computer-science-ogu.jpg
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # computer-science/algorithm default
+  # cs/study default
   - scope:
-      path: "computer-science/algorithm"
+      path: "cs/cs-study"
     values:
       layout: single
-      categories:
-        - algorithm
       author_profile: false
       read_time: true
       show_date: true
@@ -571,20 +619,41 @@ defaults:
       search: true
       use_math: true
       sidebar:
-        nav: "computer-science"
+        nav: "cs"
+      header:
+        teaser: /assets/images/ogu/computer-science-ogu.jpg
+        overlay_image: /assets/images/ogu/computer-science-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
+  # cs/algorithm default
+  - scope:
+      path: "cs/algorithm"
+    values:
+      layout: single
+      author_profile: false
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "cs"
       header:
         teaser: /assets/images/ogu/algorithm-ogu.jpg
         overlay_image: /assets/images/ogu/algorithm-ogu.jpg
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # computer-science/network default
+  # cs/network default
   - scope:
-      path: "computer-science/network"
+      path: "cs/network"
     values:
       layout: single
-      categories:
-        - network
       author_profile: false
       read_time: true
       show_date: true
@@ -596,20 +665,18 @@ defaults:
       search: true
       use_math: true
       sidebar:
-        nav: "computer-science"
+        nav: "cs"
       header:
         teaser: /assets/images/ogu/network-ogu.jpg
         overlay_image: /assets/images/ogu/network-ogu.jpg
         overlay_filter: 0.4
         caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
-  # computer-science/datastructures default
+  # cs/datastructures default
   - scope:
-      path: "computer-science/datastructures"
+      path: "cs/datastructures"
     values:
       layout: single
-      categories:
-        - datastructures
       author_profile: false
       read_time: true
       show_date: true
@@ -621,7 +688,7 @@ defaults:
       search: true
       use_math: true
       sidebar:
-        nav: "computer-science"
+        nav: "cs"
       header:
         teaser: /assets/images/ogu/datastructures-ogu.jpg
         overlay_image: /assets/images/ogu/datastructures-ogu.jpg
