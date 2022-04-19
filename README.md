@@ -10,9 +10,11 @@
 
 ## 작성에 사용하는 front matter
 ```html
+---
 title: 
 excerpt: 
 tags: []
 header:
   teaser: /assets/images/
+---
 ```
