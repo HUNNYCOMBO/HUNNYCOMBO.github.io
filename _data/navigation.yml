@@ -7,7 +7,7 @@ main:
   - title : "dbms"
     url : /dbms/
   - title : "기타 cs지식"
-    url : /computer-science/
+    url : /cs/
   - title : "포트폴리오"
     url : /portfolio/
   - title: "카테고리 모음"
