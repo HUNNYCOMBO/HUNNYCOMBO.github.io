@@ -11,10 +11,9 @@
 ## overlay image에 사용하는 front matter
 ```html
 header:
-  teaser: 
-  overlay_image: 
+  teaser: /assets/images/
+  overlay_image: /assets/images/
   overlay_filter: 0.4
-  caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 ```
 
 ## 작성에 사용하는 front matter
