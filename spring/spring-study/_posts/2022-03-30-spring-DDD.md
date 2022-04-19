@@ -4,8 +4,6 @@ excerpt: "도메인 주도 개발이란 무엇인지 알아봅니다."
 tags: [도메인, DDD]
 header:
   teaser: /assets/images/spring/ddd.jpg
-  overlay_image: /assets/images/spring/ddd.jpg
-  overlay_filter: 0.4
 ---
 
 ## 읽기전 보면 좋은 개념

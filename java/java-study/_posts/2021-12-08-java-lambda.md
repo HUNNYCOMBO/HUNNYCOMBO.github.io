@@ -4,8 +4,6 @@ tags: [람다, Stream, 함수형 인터페이스]
 excerpt: "자바8에 추가된 람다와 스트림에 대해 알아봅니다."
 header:
   teaser: /assets/images/java/lambda.png
-  overlay_image: /assets/images/java/lambda.png
-  overlay_filter: 0.4
 ---
 
 ## 람다

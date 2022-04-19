@@ -4,8 +4,6 @@ tags: [b-tree]
 excerpt: mysql index 구조로 사용되는 b-tree에 대해 알아봅니다.
 header:
   teaser: /assets/images/etc/b-tree.png
-  overlay_image: /assets/images/etc/b-tree.png
-  overlay_filter: 0.4
 ---
 
 ## 참고링크

@@ -4,8 +4,6 @@ excerpt: "김영한님의 스프링부트 입문 강좌 입니다."
 tags: [MVC패턴]
 header:
   teaser: /assets/images/spring/spring-kim.png
-  overlay_image: /assets/images/spring/spring-kim.png
-  overlay_filter: 0.4
 ---
 
 ## 링크

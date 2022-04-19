@@ -4,8 +4,6 @@ tags: [abstract, interface, 추상화]
 excerpt : "상속과 추상클래스의 차이를 알아봅니다."
 header:
   teaser: /assets/images/java/interface.png
-  overlay_image: /assets/images/java/interface.png
-  overlay_filter: 0.4
 ---
 
 ## abstract와 interface

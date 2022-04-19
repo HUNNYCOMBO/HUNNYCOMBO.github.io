@@ -8,18 +8,11 @@
 - 띄어쓰기는 대부분 하이픈(-)으로 작성
 - 태그는 웬만하면 한글로 적었음
 
-## overlay image에 사용하는 front matter
-```html
-header:
-  teaser: /assets/images/
-  overlay_image: /assets/images/
-  overlay_filter: 0.4
-```
-
 ## 작성에 사용하는 front matter
 ```html
 title: 
 excerpt: 
-tags:
-  -
+tags: []
+header:
+  teaser: /assets/images/
 ```

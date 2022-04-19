@@ -4,8 +4,6 @@ excerpt: "스프링의 Trasactional 어노테이션의 속성에 대해 알아�
 tags: [어노테이션, 트랜잭션]
 header:
   teaser: /assets/images/spring/transaction.jpg
-  overlay_image: /assets/images/spring/transaction.jpg
-  overlay_filter: 0.4
 ---
 
 ## 참고링크
