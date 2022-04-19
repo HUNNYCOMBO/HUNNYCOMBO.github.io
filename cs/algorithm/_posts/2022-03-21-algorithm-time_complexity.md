@@ -2,6 +2,10 @@
 title:  "시간복잡도"
 tags: [시간복잡도, 빅오]
 excerpt: "연산 수행의 성능을 나타내는 빅오표기법에 대해 알아봅니다."
+header:
+  teaser: /assets/images/etc/big-o.png
+  overlay_image: /assets/images/etc/big-o.png
+  overlay_filter: 0.4
 ---
 
 + 참조한 블로그 [chulgil](https://blog.chulgil.me/algorithm/)

@@ -2,6 +2,10 @@
 title:  "Layered Architecture"
 excerpt: "스프링의 대표적인 레이어드 아키텍처에 대해 알아봅니다."
 tags: [설계]
+header:
+  teaser: /assets/images/spring/layered.png
+  overlay_image: /assets/images/spring/layered.png
+  overlay_filter: 0.4
 ---
 
 + 참조한 블로그 [hanblueblue](https://velog.io/@hanblueblue/%EB%B2%88%EC%97%AD-Layered-Architecture)  

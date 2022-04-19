@@ -2,6 +2,10 @@
 title:  "커버링 인덱스"
 tags: [커버링 인덱스]
 excerpt: "mysql에서 주로 사용하는 커버링 인덱스에 대해 알아봅니다."
+header:
+  teaser: /assets/images/etc/mysql.png
+  overlay_image: /assets/images/etc/mysql.png
+  overlay_filter: 0.4
 ---
 
 ## 참고 링크

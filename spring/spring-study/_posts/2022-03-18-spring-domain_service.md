@@ -2,6 +2,10 @@
 title:  "domain service와 application(비즈니스) service"
 excerpt: "도메인 계층의 로직과 애플리케이션 계층의 로직의 차이점을 알아봅니다."
 tags: [도메인, 설계]
+header:
+  teaser: /assets/images/spring/ddd.jpg
+  overlay_image: /assets/images/spring/ddd.jpg
+  overlay_filter: 0.4
 ---
 
 + 참조한 블로그 [복세편살](https://americanopeople.tistory.com/372)

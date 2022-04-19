@@ -2,6 +2,10 @@
 title:  "제네릭"
 tags: [제네릭]
 excerpt: "제네릭에 대해 알아봅니다."
+header:
+  teaser: /assets/images/java/generic.png
+  overlay_image: /assets/images/java/generic.png
+  overlay_filter: 0.4
 ---
 
 ## Generic

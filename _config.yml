@@ -25,7 +25,7 @@ url                      : "https://lala-ogu.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
-logo                     : "/assets/images/lala-ogu.png"
+logo                     : "/assets/images/lala/lala-ogu.png"
 masthead_title           : # overrides the website title displayed in the masthead, use " " for no title
 breadcrumbs              : true # true, false (default)
 words_per_minute         : 200
@@ -103,7 +103,7 @@ analytics:
 # Site Author
 author:
   name             : "Lala"
-  avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
+  avatar           : "/assets/images/lala/lala.jpg"
   bio              : "in 1993 |java stack |love ogu "
   location         : "Seoul"
   email            : #"fkrudgns@gmail.com"

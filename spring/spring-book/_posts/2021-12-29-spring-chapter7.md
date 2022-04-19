@@ -2,6 +2,10 @@
 title:  "토비의 스프링 vol.1 7장"
 excerpt: "토비의 스프링 7장 스프링 핵심 기술의 응용 입니다."
 tags: [스프링 핵심 기술의 응용]
+header:
+  teaser: /assets/images/spring/toby.png
+  overlay_image: /assets/images/spring/toby.png
+  overlay_filter: 0.4
 ---
 
 ## 스프링 핵심 기술의 응용

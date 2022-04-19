@@ -2,6 +2,10 @@
 title:  "해시"
 tags: [해시 함수, 해시 충돌, 해시 테이블, 해시]
 excerpt: "1:1 검색에 사용되는 해시에 대해 알아봅니다."
+header:
+  teaser: /assets/images/etc/hash.png
+  overlay_image: /assets/images/etc/hash.png
+  overlay_filter: 0.4
 ---
 
 + 해쉬함수 전 보면 좋은 내용 [합의 알고리즘](https://steemit.com/kr/@yahweh87/1-consensus-problem)

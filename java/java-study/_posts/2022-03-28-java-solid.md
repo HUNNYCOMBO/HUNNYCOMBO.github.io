@@ -2,6 +2,10 @@
 title:  "객채지향의 원리 - SOLID"
 tags: [solid, oop]
 excerpt: "자바의 핵심 객체지향에 대해 알아봅니다."
+header:
+  teaser: /assets/images/java/solid.jpg
+  overlay_image: /assets/images/java/solid.jpg
+  overlay_filter: 0.4
 ---
 
 ## 참조

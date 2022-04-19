@@ -2,6 +2,10 @@
 title:  "쓰레드"
 tags: [쓰레드]
 excerpt: "쓰레드에 대해 알아봅니다."
+header:
+  teaser: /assets/images/java/thread.png
+  overlay_image: /assets/images/java/thread.png
+  overlay_filter: 0.4
 ---
 
 ## Thread

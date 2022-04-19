@@ -2,6 +2,10 @@
 title:  "자바의 직렬화 - serialization/deserialization"
 tags: [직렬화]
 excerpt: "객체를 데이터화 하는 직렬화에 대해 알아봅니다."
+header:
+  teaser: /assets/images/java/serialization.png
+  overlay_image: /assets/images/java/serialization.png
+  overlay_filter: 0.4
 ---
 
 ## 참고링크

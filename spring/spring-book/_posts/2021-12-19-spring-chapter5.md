@@ -2,6 +2,10 @@
 title:  "토비의 스프링 vol.1 5장"
 excerpt: "토비의 스프링 5장 서비스 추상화입니다."
 tags: [서비스 추상화]
+header:
+  teaser: /assets/images/spring/toby.png
+  overlay_image: /assets/images/spring/toby.png
+  overlay_filter: 0.4
 ---
 
 ## 서비스 추상화

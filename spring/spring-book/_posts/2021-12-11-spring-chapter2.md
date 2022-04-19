@@ -2,6 +2,10 @@
 title:  "토비의 스프링 vol.1 2장"
 excerpt: "토비의 스프링 2장 테스트 입니다."
 tags: [테스트]
+header:
+  teaser: /assets/images/spring/toby.png
+  overlay_image: /assets/images/spring/toby.png
+  overlay_filter: 0.4
 ---
 
 ## 테스트

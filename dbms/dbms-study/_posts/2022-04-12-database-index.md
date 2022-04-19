@@ -2,6 +2,10 @@
 title:  "index - 클러스터/비클러스터"
 tags: [인덱스]
 excerpt: "DB에서 사용하는 인덱스에 대해 알아봅니다."
+header:
+  teaser: /assets/images/etc/index.png
+  overlay_image: /assets/images/etc/index.png
+  overlay_filter: 0.4
 ---
 
 ## 1. index란?

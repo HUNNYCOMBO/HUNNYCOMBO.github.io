@@ -2,6 +2,10 @@
 title:  "spring의 빌드관리도구 - maven, gradle"
 excerpt: "스프링의 빌드관리도구에 대해 알아봅니다."
 tags: [maven, gradle]
+header:
+  teaser: /assets/images/spring/maven.jpg
+  overlay_image: /assets/images/spring/maven.jpg
+  overlay_filter: 0.4
 ---
 
 ## 1. 빌드

@@ -2,6 +2,10 @@
 title:  "domain, DTO, entity"
 excerpt: "개념이 비슷한 도메인, DTO의 차이를 알아봅니다."
 tags: [도메인]
+header:
+  teaser: /assets/images/spring/ddd.jpg
+  overlay_image: /assets/images/spring/ddd.jpg
+  overlay_filter: 0.4
 ---
 
 + 참조한 블로그 [heejeong Kwon](https://gmlwjd9405.github.io/2018/12/25/difference-dao-dto-entity.html)

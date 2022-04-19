@@ -2,6 +2,10 @@
 title:  "토비의 스프링 vol.1 1장"
 excerpt: "토비의 스프링 1장 오브젝트와 의존관계 입니다."
 tags: [오브젝트와 의존관계]
+header:
+  teaser: /assets/images/spring/toby.png
+  overlay_image: /assets/images/spring/toby.png
+  overlay_filter: 0.4
 ---
 ## 오브젝트와 의존관계
 

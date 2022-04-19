@@ -2,6 +2,10 @@
 title:  "MySQL의 스토리지 엔진 - InnoDB"
 tags: [innodb]
 excerpt: "InnoDB에 대해 알아봅니다."
+header:
+  teaser: /assets/images/etc/mysql.png
+  overlay_image: /assets/images/etc/mysql.png
+  overlay_filter: 0.4
 ---
 
 ## 참고링크

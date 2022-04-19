@@ -2,6 +2,10 @@
 title:  "토비의 스프링 vol.1 4장"
 excerpt: "토비의 스프링4장 예외처리 입니다."
 tags: [예외]
+header:
+  teaser: /assets/images/spring/toby.png
+  overlay_image: /assets/images/spring/toby.png
+  overlay_filter: 0.4
 ---
 
 ## 예외

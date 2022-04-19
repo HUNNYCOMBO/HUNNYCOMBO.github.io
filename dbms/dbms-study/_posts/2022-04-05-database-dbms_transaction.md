@@ -2,6 +2,10 @@
 title:  "DBMS가 제공하는 트랜잭션"
 tags: [트랜잭션]
 excerpt: "데이터베이스 관리 시스템이 제공하는 트랜잭션에 대해 알아봅니다."
+header:
+  teaser: /assets/images/spring/transaction.jpg
+  overlay_image: /assets/images/spring/transaction.jpg
+  overlay_filter: 0.4
 ---
 
 ## 참고링크

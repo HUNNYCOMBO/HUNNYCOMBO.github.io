@@ -2,6 +2,10 @@
 title:  "토비의 스프링 vol.1 3장"
 excerpt: "토비의 스프링3장 템플릿입니다."
 tags: [템플릿]
+header:
+  teaser: /assets/images/spring/toby.png
+  overlay_image: /assets/images/spring/toby.png
+  overlay_filter: 0.4
 ---
 
 ## 템플릿
