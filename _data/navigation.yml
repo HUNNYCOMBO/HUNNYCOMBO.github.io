@@ -4,8 +4,8 @@ main:
     url : /spring/
   - title : "자바"
     url : /java/
-  - title : "데이터베이스"
-    url : /database/
+  - title : "dbms"
+    url : /dbms/
   - title : "기타 cs지식"
     url : /computer-science/
   - title : "포트폴리오"
@@ -34,11 +34,11 @@ spring:
       - title: "모두보기"
         url: /spring/
       - title: "스프링"
-        url: /spring/study/
+        url: /spring/spring-study/
       - title: "스프링-책"
-        url: /spring/book/
+        url: /spring/spring-book/
       - title: "스프링-온라인강의"
-        url: /spring/online-study/
+        url: /spring/spring-onlineclass/
 
 # java sidebar
 java:
@@ -47,20 +47,20 @@ java:
       - title: "모두보기"
         url: /java/
       - title: "자바"
-        url: /java/study/
+        url: /java/java-study/
       - title: "자바-책"
-        url: /java/book/
+        url: /java/java-book/
       - title: "자바-온라인강의"
-        url: /java/online-study/
+        url: /java/java-onlineclass/
 
-# database sidebar
-database:
+# dbms sidebar
+dbms:
   - title: 포스팅 분류
     children:
       - title: "모두보기"
         url: /dbms/
       - title: "dbms"
-        url: /dbms/study/
+        url: /dbms/dbms-study/
       - title: "mysql"
         url: /dbms/mysql/
       - title: "jpa"
@@ -72,8 +72,8 @@ cs:
     children:
       - title: "모두보기"
         url: /cs/
-      - title: "기타 cs 지식"
-        url: /cs/study/
+      - title: "기타 cs지식"
+        url: /cs/cs-study/
       - title: "알고리즘"
         url: /cs/algorithm/
       - title: "자료구조"
