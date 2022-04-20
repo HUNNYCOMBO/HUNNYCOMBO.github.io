@@ -12,13 +12,13 @@ excerpt: "모임관리 웹사이트(백기선님 강의 참고)"
 **패키지 재설계**
 - config : 유지
 - controller : presentation 패키지로 이동
-- domain : 기존에 DTO로서 가치만 있던 객체에서 비즈니스로직을 포함하도록 수정. repository와 service의 객체들을 해당 도메인 별로 구분
+- domain : jpa로 이루어져잇으므로 엔티티로서 하는 역할과 순수 자바로 이루어진 비즈니스 로직이 합쳐진 . repository와 service의 객체들을 해당 도메인 별로 구분
 - form : dto객체로 재탄생.
 - repository : domain영역으로 편집
-- service : domain 영역으로 편집
+- service : 비즈니스 로직에서 순수 자바로직으로 이루어지지 않는 영역(DI가 필요한부분)을 따로 분리한 클래스
 - validator : presetation 패키지로 이동
 - dto : 기존에 domain객체를 컨트롤러(프레젠테이션 영역)에서 그대로 사용하여 역참조가 일어났으므로, dto객체를 추가
-- application : 애플리케이션 패키지를 추가, usecase를 묶는 역할을 하는 패키지.
+- application : 애플리케이션 패키지를 추가, 비즈니스로직들을 호출하여usecase를 묶는 역할을 하는 패키지.
 - infrastructure : 인프라스트럭쳐 패키지를 추가
 
 
