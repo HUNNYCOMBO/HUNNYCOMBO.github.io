@@ -83,10 +83,12 @@ cs:
 
 # portfolio sidebar
 portfolio:
-  - title: "About Lala"
-    url: /about/
-  - title: "프로젝트 모음"
-    url: /portfolio/
+  - title: 포트폴리오
+    children:
+      - title: "About Lala"
+        url: /about/
+      - title: "프로젝트 모음"
+        url: /portfolio/
 
 
   # - title: "About"
