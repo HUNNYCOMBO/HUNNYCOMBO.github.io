@@ -1,5 +1,5 @@
 ---
-title: "About Lala."
+title: "About Lala"
 excerpt: "꾸준히 성장하여 시니어 개발자가 되고싶은 라경훈입니다."
 layout: "single"
 permalink: /about/
@@ -9,8 +9,8 @@ toc_sticky: true
 sidebar:
   nav: "portfolio"
 header:
-  teaser: /assets/images/ogu/categories-ogu.jpg
-  overlay_image: /assets/images/ogu/categories-ogu.jpg
+  teaser: /assets/images/lala/lala-flower.jpg
+  overlay_image: /assets/images/lala/lala-flower.jpg
   overlay_filter: 0.4
   caption: "About Lala"
 ---
@@ -46,7 +46,7 @@ header:
 - RESTAPI로 응답하는 경험을 해봤습니다.
 - layered architecture에 대해 이해하고 있습니다.
 
-### <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt"MySQL">
+### <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
 - dml문과 ddl문에 대해 알고 있습니다.
 - index에 대해 알고 있습니다.
 
