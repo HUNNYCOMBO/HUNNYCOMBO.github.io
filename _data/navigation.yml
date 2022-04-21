@@ -10,22 +10,19 @@ main:
     url : /cs/
   - title : "포트폴리오"
     url : /about/
-  - title: "카테고리 모음"
-    url: /categories/
-  - title: "태그 모음"
-    url: /tags/
   - title: "검색"
     url: /search/
 
-docs:
-  - title: "네비게이션"
+# search sidebar
+search:
+  - title: "검색 분류"
     children:
-      - title: "카테고리"
-        url: /categories/
-      - title: "태그"
-        url: /tags/
       - title: "검색"
         url: /search/
+      - title: "카테고리 모음"
+        url: /categories/
+      - title: "태그 모음"
+        url: /tags/
 
 # spring sidebar
 spring:
