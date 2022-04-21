@@ -107,11 +107,11 @@ author:
   avatar           : "/assets/images/lala/lala.jpg"
   bio              : "in 1993 |java stack |love ogu "
   location         : "Seoul"
-  email            : "gnsrudfk@naver.com"
+  email            : #"gnsrudfk@naver.com"
   links:
     - label: "gnsrudfk@naver.com"
       icon: "fas fa-fw fa-envelope-square"
-      # url: "mailto:gnsrudfk@naver.com"
+      url: "mailto:gnsrudfk@naver.com"
     - label: "TODO"
       icon: "fas fa-fw fa-list-ul"
       url: "https://github.com/lala-ogu/TODO"
