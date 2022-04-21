@@ -38,13 +38,15 @@ header:
 - [프로젝트 모음](https://lala-ogu.github.io/portfolio)
 
 ## :computer: stack
-### <img src="https://img.shields.io/badge/JAVA-007396?style=for-the-badge&logo=java&logoColor=white">
+### <img src="https://img.shields.io/badge/JAVA-007396?style=for-the-badge&logo=java&logoColor=white" alt="java">
 - JVM 메모리 구조에 대해 간략히 알고 있습니다.
-### <img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=Spring&logoColor=white">
+
+### <img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=Spring&logoColor=white" alt="spring boot">
 - MVC패턴으로 애플리케이션을 제작 할 수 있습니다.
 - RESTAPI로 응답하는 경험을 해봤습니다.
 - layered architecture에 대해 이해하고 있습니다.
-### <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+
+### <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt"MySQL">
 - dml문과 ddl문에 대해 알고 있습니다.
 - index에 대해 알고 있습니다.
 
