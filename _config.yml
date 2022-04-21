@@ -113,10 +113,10 @@ author:
       icon: "fas fa-fw fa-envelope-square"
       url: "mailto:gnsrudfk@naver.com"
     - label: "TODO"
-      icon: "fas fa-fw fa-check-square-o"
+      icon: "fas fa-fw fa-list-ul"
       url: "https://github.com/lala-ogu/TODO"
     - label: "TIL"
-      icon: "fas fa-fw fa-graduation-cap"
+      icon: "fas fa-fw fa-calendar-check"
       url: "https://github.com/lala-ogu/TIL"
     - label: "Twitter"
       icon: "fab fa-fw fa-twitter-square"
@@ -140,14 +140,11 @@ footer:
     - label: "Facebook"
       icon: "fab fa-fw fa-facebook-square"
       # url:
-    - label: "gnsrudfk@naver.com"
-      icon: "fas fa-fw fa-envelope-square"
-      url: "mailto:gnsrudfk@naver.com"
     - label: "TODO"
-      icon: "fas fa-fw fa-check-square-o"
+      icon: "fas fa-fw fa-list-ul"
       url: "https://github.com/lala-ogu/TODO"
     - label: "TIL"
-      icon: "fas fa-fw fa-graduation-cap"
+      icon: "fas fa-fw fa-calendar-check"
       url: "https://github.com/lala-ogu/TIL"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
@@ -706,7 +703,7 @@ defaults:
       layout: single
       categories:
         - portfolio
-      author_profile: true
+      author_profile: false
       read_time: true
       show_date: true
       comments: true
@@ -716,6 +713,8 @@ defaults:
       toc_sticky: true
       search: true
       use_math: true
+      sidebar:
+        nav: "portfolio"
       header:
         teaser: /assets/images/ogu/portfolio-ogu.jpg
         overlay_image: /assets/images/ogu/portfolio-ogu.jpg

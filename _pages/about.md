@@ -2,7 +2,9 @@
 title: "라경훈입니다."
 layout: "single"
 permalink: /about/
-author_profile: true
+author_profile: false
+sidebar:
+  nav: "portfolio"
 header:
   teaser: /assets/images/ogu/categories-ogu.jpg
   overlay_image: /assets/images/ogu/categories-ogu.jpg
