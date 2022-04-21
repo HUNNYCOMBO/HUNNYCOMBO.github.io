@@ -111,7 +111,7 @@ author:
   links:
     - label: "gnsrudfk@naver.com"
       icon: "fas fa-fw fa-envelope-square"
-      url: "mailto:gnsrudfk@naver.com"
+      # url: "mailto:gnsrudfk@naver.com"
     - label: "TODO"
       icon: "fas fa-fw fa-list-ul"
       url: "https://github.com/lala-ogu/TODO"
