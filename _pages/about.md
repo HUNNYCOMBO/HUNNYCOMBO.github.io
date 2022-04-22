@@ -60,8 +60,7 @@ header:
 ### [Gather Up - 모임 관리 웹사이트](https://lala-ogu.github.io/portfolio/project-lazir)
 ---
 
-<details>
-  <summary>개요</summary>
+[expand]summary:개요
 
 ### 개요
 - lazir는 JPA에 관심이 있어 **온라인 강의**를 참고하여 만든 1인 제작 프로젝트 입니다.  
@@ -132,7 +131,7 @@ header:
 ![gather-crud](https://user-images.githubusercontent.com/78904413/164675115-8b3a054a-42e8-43e3-b668-1d9b2bc9e3fa.gif)  
 - 간단한 게시판과 댓글 CRUD 입니다.
   
-</details>
+[/expand]
 
 <details>
    <summary>프로젝트 구조</summary>
