@@ -35,6 +35,26 @@ body {
   flex: 1 0 auto;
 }
 
+.collaspe-article {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.collaspe-content{
+  padding-top: 5px;
+}
+.collaspe-content:before {
+  content: "";
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid #bcbcbc;
+}
+.collaspe-content:after {
+  content: "";
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid #bcbcbc;
+}
+
 .page {
   @include breakpoint($large) {
     float: right;
