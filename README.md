@@ -21,8 +21,8 @@ header:
 ---
 ```
 ## collapsible block 사용법
-details 태그 안에는 markdown 작성을 못하므로, liquid 문법을 이용하여 치환하여 사용하여야합니다.  
-모두 본문에 작성합니다.  
+details 태그 안에는 markdown 작성을 못하므로, liquid 문법을 이용하여 capture의 변수와 치환하여 사용하여야합니다.  
+모두 본문에 작성합니다. 변수는 영어로 작성해야합니다.
 ```liquid
 {% capture summarymd %}이곳에 마크다운 작성{% endcapture %}
 {% capture detailsmd %}이곳에 마크다운 작성{% endcapture %}
