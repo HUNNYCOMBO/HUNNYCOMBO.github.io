@@ -63,9 +63,9 @@ header:
   - [github에서 보기](https://github.com/lala-ogu/gatherup)
   - [리팩토링 보기](https://lala-ogu.github.io/portfolio/refactoring-gatherup)
 
-{% capture 개요내용 %}
+{% capture gu1 %}
 - 개요
-  - lazir는 JPA에 관심이 있어 **온라인 강의**를 참고하여 만든 1인 제작 프로젝트 입니다.  
+  - Gather Up은 **온라인 강의**를 참고하여 만든 1인 제작 프로젝트 입니다.  
   - 게임에서 파티를 맺는 것 처럼, 웹 상에서 한 '모임'에 가입하고 탈퇴하는 기능을 구현하고 싶어서 데이터를 collection처럼 다룰 수 있는 ORM을 선택하게 됐습니다. 
   - 프로젝트를 처음 개발 할 때는 DTO와 Entity를 나누는 이유도 모르고 architecture도 모른채로 온라인 강의의 코드, 설계와 많이 다르게 제작하여 간단한 리팩토링을 거쳤습니다.
 
@@ -88,10 +88,10 @@ header:
 
 <details>
   <summary>개요(클릭)</summary>
-{{ 개요내용 | markdownify }}
+{{ gu1 | markdownify }}
 </details>
 
-{% capture 움짤내용 %}
+{% capture gu2 %}
 - 1. 회원가입 검증과 가입 후 자동로그인, 메일 보내기
 ![gather-signupvalidate](https://user-images.githubusercontent.com/78904413/164649157-2bd03dea-7302-49cc-8eaa-71273922fae8.gif)
   - 회원가입시 랜덤한 토큰값을 저장해서, javamailsender를 이용해 메일을 보냅니다.
@@ -130,10 +130,10 @@ header:
 
 <details>
   <summary>움짤로 보는 동작(클릭)</summary>
-{{ 움짤내용 | markdownify }}
+{{ gu2 | markdownify }}
 </details>
 
-{% capture 구조내용 %}
+{% capture gu3 %}
 
 - Spring Boot
 > 템플릿 엔진(thymeleaf)를 이용해 객체를 담아 응답합니다. (JSON리턴 방식 X)
@@ -164,5 +164,5 @@ header:
 
 <details>
   <summary>프로젝트 구조(클릭)</summary>
-{{ 구조내용 | markdownify }}
+{{ gu3 | markdownify }}
 </details>
