@@ -43,11 +43,14 @@ header:
 ### :computer: stack
 #### <img src="https://img.shields.io/badge/JAVA-007396?style=for-the-badge&logo=java&logoColor=white" alt="java">
 - JVM 메모리 구조에 대해 간략히 알고 있습니다.
+- 객체지향원칙(SOLID) 대해서 공부했습니다.
 
 #### <img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=Spring&logoColor=white" alt="spring boot">
 - MVC패턴으로 간단한 CRUD 애플리케이션을 제작 할 수 있습니다.
 - RESTAPI로 응답하는 경험을 해봤습니다.
 - layered architecture에 대해 이해하고 있습니다.
+- DI로 관심사를 분리하는 과정을 이해하고 있습니다.
+- pointcut과 advice를 이용한 AOP에 대해 공부했습니다.
 
 #### <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
 - dml문과 ddl문에 대해 알고 있습니다.
@@ -56,24 +59,31 @@ header:
 ## :open_file_folder: 프로젝트 요약
 ### [Gather Up - 모임 관리 웹사이트](https://lala-ogu.github.io/portfolio/project-lazir)
 ---
-#### 개요
+
+<details>
+  <summary>개요</summary>
+
+### 개요
 - lazir는 JPA에 관심이 있어 **온라인 강의**를 참고하여 만든 1인 제작 프로젝트 입니다.  
 - 게임에서 파티를 맺는 것 처럼, 웹 상에서 한 '모임'에 가입하고 탈퇴하는 기능을 구현하고 싶어서 데이터를 collection처럼 다룰 수 있는 ORM을 선택하게 됐습니다. 
 - 프로젝트를 처음 개발 할 때는 DTO와 Entity를 나누는 이유도 모르고 architecture도 모른채로 온라인 강의의 코드, 설계와 많이 다르게 제작하여 간단한 리팩토링을 거쳤습니다.
 
-#### 기간
+### 기간
 - 2021.10 ~ 2021.11
 - 2022.04(리팩토링)
 
-#### 구현사항
+### 구현사항
 - OAuth2.0을 사용하여 google 로그인 구현
 - 게시물 및 댓글 CRUD
+- javamailsender를 이용한 이메일 인증 token 전송
 
-#### 사용한 기술
+### 사용한 기술
 - Languague: java 11
 - Framework: spring boot, spring data JPA, spring security
 - Database: H2, MySQL
 - BuildTool: maven
+
+</details>
 
 <details>
   <summary>움짤로 보는 Gather Up</summary>
@@ -132,7 +142,7 @@ header:
 > 템플릿 엔진(thymeleaf)를 이용해 객체를 담아 응답합니다. (JSON리턴 방식 X)
   >> 이후 REST API와 layered architecture를 알게되어 리팩토링 중에 있습니다.
 
-- 구조(리펙토링 전)
+- 구조(리팩토링 전)
   - config: security와 project configuration을 관리합니다.
   - controller: controller들을 관리합니다.
   - domain: entity이자 domain model을 관리합니다. (dto와 domain의 차이를 알기 전이라 dto처럼 사용하였습니다.)
