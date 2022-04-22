@@ -1,5 +1,5 @@
 ---
-title:  "프로젝트 리팩토링 - lazir"
+title:  "프로젝트 리팩토링 - gather up"
 excerpt: "모임관리 웹사이트(백기선님 강의 참고)"
 ---
 
