@@ -23,7 +23,7 @@ tags: [리팩토링, gather up]
 - infrastructure : 인프라스트럭쳐 패키지를 추가
 
 
-## RESTAPI로 재설계()
+## RESTAPI로 재설계(미완)
 
 기존의 AccountController클래스의 signUpSubmit메소드를 살펴보면 modelAttribute로 thymeleaf와 대응되는 Form객체를 그대로 리턴했습니다.(thymeleaf에선 객체의 필드를 그대로 사용)  
 RESTAPI로 재설계하기 위해 **JSON으로 응답**하게 변경합니다.  
