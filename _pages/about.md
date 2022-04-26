@@ -65,7 +65,7 @@ header:
 ---
 - 링크
   - [github에서 보기](https://github.com/lala-ogu/gatherup)
-  - [리팩토링 보기](https://lala-ogu.github.io/portfolio/refactoring-gatherup)
+  - [리팩토링 (미완)](https://lala-ogu.github.io/portfolio/refactoring-gatherup)
 
 {% capture gu1 %}
 - 개요
