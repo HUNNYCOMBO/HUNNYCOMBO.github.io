@@ -2,7 +2,9 @@
 title: "REST API - 생활코딩 강의"
 excerpt: "REST API에 대하여 유튜브 생활코딩님의 강의를 기록합니다."
 tags: [REST_API]
-
+header:
+  teaser: ![image](https://user-images.githubusercontent.com/78904413/173184441-5bf7b3fa-fdfb-4567-92e5-cd4ac61c1674.png)
+  
 ---
 
 ## 참고링크
