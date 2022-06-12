@@ -306,6 +306,29 @@ defaults:
       use_math: true
 
 
+  # javascript default
+  - scope:
+      path: "js"
+    values:
+      layout: single
+      author_profile: false
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "spring"
+      header:
+        teaser: /assets/images/ogu/js-ogu.jpg
+        overlay_image: /assets/images/ogu/js-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+
   # spring default
   - scope:
       path: "spring"
