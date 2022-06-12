@@ -27,7 +27,7 @@ search:
         url: /tags/
 
 # js sidebar
-spring:
+js:
   - title: 포스팅 분류
     children:
       - title: "모두보기"
