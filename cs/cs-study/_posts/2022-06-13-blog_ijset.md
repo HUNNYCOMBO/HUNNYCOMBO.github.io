@@ -24,3 +24,11 @@ title: "개인 기록용 포스팅"
 - jsp, servlet, jar, class, xml, html, javascript 등 Servlet Context 관련 파일들로 패키징
 - tomcat 등의 WAS(웹 컨테이너)가 필요
 
+## sprig legacy vs boot
+- 스프링 부트는 내장 서버를 포함
+- 스프리 레거시는 서버 따로 띄워놓고 애플리케이션을 실행해야 함
+- 스프링 부트의 경우 application.properties 나 yml을 사용
+- 스프링 레거시의 경우 root-context.xml 혹은 servlet-context.xml 사용
+- jsp 파일이 web-inf(일반 사용자 접근 불가)에서 작동하여 보안 취약점을 해결
+
+![image](https://user-images.githubusercontent.com/78904413/173358936-f50a7b50-a465-45dd-abb8-e3559253471e.png)
