@@ -1,5 +1,6 @@
 ---
 title: "개인 기록용 포스팅"
+excerpt: "추후 분리될 포스팅들을 두서없이 정리"
 ---
 
 ## intelij plugins
