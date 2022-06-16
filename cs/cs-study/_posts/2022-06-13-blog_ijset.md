@@ -168,3 +168,6 @@ function Auth() {
 }
 ```
 Auth.login()은 아이디와 비밀번호 `form`에 빈 칸이 없다면 `POST` 방식으로 `https://www.clien.net/service/login`에 폼을 전송해 로그인하는 기능을 정의한 함수입니다.  
+
+## 컬럼, 필드, 로우 햇갈리는 표현 정리
+![image](https://user-images.githubusercontent.com/78904413/173975451-271a68e0-2085-4e0d-b7db-575432bc7add.png)
