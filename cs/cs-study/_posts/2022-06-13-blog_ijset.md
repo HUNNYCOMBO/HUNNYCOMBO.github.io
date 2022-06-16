@@ -171,3 +171,27 @@ Auth.login()은 아이디와 비밀번호 `form`에 빈 칸이 없다면 `POST` 
 
 ## 컬럼, 필드, 로우 햇갈리는 표현 정리
 ![image](https://user-images.githubusercontent.com/78904413/173975451-271a68e0-2085-4e0d-b7db-575432bc7add.png)
+
+## sessionAttribute와 modelAttribute의 차이점
+- [참고자료](https://okky.kr/article/894648)
+- [](https://kim-jong-hyun.tistory.com/45)
+
+MVC컨트롤러는 DB에서 가져온 데이터를 model에 담습니다. view는 model에 있는 데이터를 추력합니다.  
+세션은 WAS에서 관리합니다. 전역변수처럼 사용되어 모든 페이지에서 그 정보를 참조할 수 있습니다. 인증정보 같은 것을 session에 넣어두어, 모든 페이지에서 참조하도록 합니다.  
+
+spring에서는 RequestAttributes 인터페이스를 제공합니다. request와 session의 scope 우선순위 값을 관리하는데, request의 scope상태가 더 높습니다. 만약 `member`라는 `key`를 session에 저장해 두었다면 화면에서 출력할 때 `request scope`에서 먼저 탐색 후 없으면 `session scope`에서 존재하기 때문에 데이터가 view에 뿌려져야 합니다.  
+
+여기서 주의할 점은 사실 `member`는 페이지가 렌더링 되기 전 `request scope`에 저장된다는 것입니다. 그 이유는 ModelAttributeMethodProcessor 클래스를 보면 알 수 있습니다.  
+
+![image](https://user-images.githubusercontent.com/78904413/173990223-21cbaadd-a314-40af-8097-37483cab45cd.png)
+
+request가 들어오면 ModelAttributeMethodProcessor가 동작합니다. 메서드 매개변수에 `@ModelAttribute`가 선언되었다면 해당 기본생성자를 호출하여 인스턴스를 생성하고 request 매개변수에 데이터를 바인딩해주며 model에 추가되지만, `@ModelAttribute`어노테이션은 생략 가능합니다. 생략시 파라미터 타입 클래스이름의 맨 앞글자만 소문자로 바꾼 값이 key가 됩니다. jsp에서 session에 저장된 데이터를 가져올 때는 `session.memeber.name`처럼 key값 앞에 session을 붙여주면 됩니다.  
+
+Model은 내부적으로 Map.Entry형태로 이루어져있습니다.  
+
+> Entry란? 각 키가 고유해야하는 기본 Map과 달리 중복 키를 가질 수 있습니다. 보통 List로 구현한 SimpleEntry객체를 사용하기 때문입니다. 이는 모든 객체가 서로 독립적임을 의미합니다.
+
+> 튜플이란? List처럼 여러 객체를 모아서 담는 자료구조입니다. 하지만 수와 순서가 고정되어 값의 수정, 추가, 삭제가 불가능하여 read-only로 사용합니다.
+
+
+![image](https://user-images.githubusercontent.com/78904413/173989482-8ad2f7f2-0405-4dec-b2b5-27efc37ad2ed.png)
