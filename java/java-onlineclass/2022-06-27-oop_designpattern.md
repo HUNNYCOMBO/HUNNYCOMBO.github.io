@@ -20,3 +20,9 @@ excerpt: 얄팍한 코딩사전 유튜브 강의 - 객체지향 디자인패턴 
 
 그후, getter로 객체를 생성할 때 마다 필드로 둔 자기자신 객체를 주입하도록 작성합니다.  
 ![image](https://user-images.githubusercontent.com/78904413/175944484-a14c583b-c12b-444e-87ef-18d7786478c5.png)
+
+이제 각 페이지마다 setting객체를 불러올 때 Setting.getSetting()를 이용하여 싱글턴 패턴을 적용합니다.  
+
+이외에도 싱글턴 패턴은 lazy loading에서 이득을 볼 수 있는 등 이점이 있지만, safe-thread하지 않는 점에 유의하여 사용하여야 합니다.  
+
+
