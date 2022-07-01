@@ -37,3 +37,5 @@ saas csap 보호조치 13.1. 항목에 따라 법적 요구사항을 고려 - th
 입력데이터 검증(중요자원 식별), 보안 기능(인증,인가,암호화), 에러처리, 세션 통제 (인가), 로깅
 예를들면, sql statement에서 동적쿼리를 다루는 statement를 통해 직접적으로 id와 password값을 입력하는 경우, 해결하기위해서 정적인 preparestatement를 사용하여 statement를 생성한 후 파라미터로 id와 paswword를 작성하도록 변경
 
+
+
