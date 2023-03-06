@@ -1,6 +1,6 @@
 ---
 title: "About Lala"
-excerpt: "꾸준히 성장하여 시니어 개발자가 되고싶은 취준생, 라경훈입니다."
+excerpt: "꾸준히 성장하."
 layout: "single"
 permalink: /about/
 author_profile: false
@@ -17,7 +17,6 @@ header:
 
 ## :hatching_chick: About Lala
 ### :blush: 간략한 소개
-- java에 관심이 많고 back-end 개발자(가 되고싶은) 라경훈입니다.
 - code review 기업 문화에 관심이 많습니다.
 - 기능에 중점적으로 개발하기보단 **clean code**와 **객체지향 원칙**을 잘 지키며 개발하고 싶습니다.
 - 꾸준히 공부를 하려 노력하고 있으며, 공부한 내용은 정리하여 블로그에 작성하고 있습니다.
