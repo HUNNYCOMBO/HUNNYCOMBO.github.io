@@ -35,7 +35,6 @@ header:
 
 ### :phone: 연락
 - email: gnsrudfk@naver.com
-- phone: 010-4000-0585
      
 ### :link: 링크
 - [깃허브](https://github.com/lala-ogu)
