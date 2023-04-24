@@ -1,6 +1,6 @@
 ---
 title: "About Lala"
-excerpt: "꾸준히 성장하."
+excerpt: "수정 예정."
 layout: "single"
 permalink: /about/
 author_profile: false
