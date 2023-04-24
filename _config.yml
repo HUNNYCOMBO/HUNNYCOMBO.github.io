@@ -16,11 +16,11 @@ minimal_mistakes_skin    : "dark" # "air", "aqua", "contrast", "dark", "dirt", "
 
 # Site Settings
 locale                   : "ko-KR"
-title                    : "라라의 공부일지"
+title                    : "라라의 공부일기"
 title_separator          : "_"
-subtitle                 : "비전공자이지만 웹개발을 하고싶어"
+subtitle                 : "공부 기록용 블로그"
 name                     : "Lala"
-description              : "I studying web programming."
+description              : "I studying programming."
 url                      : "https://lala-ogu.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
@@ -305,6 +305,28 @@ defaults:
       search: true
       use_math: true
 
+  # python default
+  - scope:
+      path: "python"
+    values:
+      layout: single
+      author_profile: false
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "python"
+      header:
+        teaser: /assets/images/ogu/py-ogu.jpg
+        overlay_image: /assets/images/ogu/py-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
 
   # javascript default
   - scope:
