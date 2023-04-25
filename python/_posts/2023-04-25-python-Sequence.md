@@ -5,6 +5,8 @@ tags: [sequnece, List, tuple, dict, set]
 ---
 ---
 
+데이터타입은 데이터를 다루기 위한 재료로서 자유자재로 다룰수 있어야 합니다.
+
 ## 1. List
 리스트란 **순서가 있는** 데이터들의 모음입니다. 대괄호를 사용하며 각 데이터는 ,로 구분합니다.
 하나의 변수에는 하나의 값만 저장할 수 있었습니다.(정확히는 주소값을 저장)
@@ -91,7 +93,7 @@ key값이 변경되면 hash값이 변경되어 더 이상 key값을 찾을 수 �
 
 ## 4. 집합자료형(set)
 - 교집합, 합집합, 차집합 등의 집합과 관련된 것을 처리하기 위한 자료형
-- 데이터의 중복이 불가능
+- 데이터의 중복이 불가능(인덱싱을 지원하지 않아 List 변환 후 데이터를 가져와야 함)
 - 순서대로 만들어 지지 않음(시퀀스 아님)
 - 중복 데이터 삭제용으로 사용 가능
 
@@ -102,3 +104,20 @@ key값이 변경되면 hash값이 변경되어 더 이상 key값을 찾을 수 �
 - remove : 데이터 삭제
 
 ![image](https://user-images.githubusercontent.com/78904413/234156143-a3c6d16d-85b2-4deb-bdb3-3d4ab0d7cd28.png)
+
+- intersection : 교집합 구하기
+- union : 합집합 구하기
+- difference : 차집합(공통되는 것을 삭제) 구하기
+![image](https://user-images.githubusercontent.com/78904413/234277214-e6444cba-4142-445f-86c5-3eefd01da0dc.png)
+
+## 5. bool
+bool 자료형은 true(참)과 false(거짓)의 두가지 값을 가지고 있는 자료형입니다.
+**조건문**에서 많이 사용됩니다.
+
+```python
+data1 = True
+data2 = False
+
+print(1<3)
+# False
+```
