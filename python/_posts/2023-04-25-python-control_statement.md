@@ -1,8 +1,11 @@
 ---
 title: '파이썬기초 - 제어문'
-excerpt: '프로그래밍의 기초가되는 if문, '
+excerpt: '프로그래밍의 기초가되는 if문, while문, for문에 대해 알아봅니다.'
 tags: [if문, 반복문]
 ---
+## 참고한 블로그
+[안성주지몬의 티스토리](https://potensj.tistory.com/114)
+
 
 좋은 프로그래머가 되기위해서는 프로그래밍을 어떻게 구현하고 설계할지 우선하는 것이 좋습니다.
 
@@ -180,6 +183,20 @@ for temp in range(len(score)):   # score의 길이만큼 list가 생성됨
   print('%d번쨰 학생의 점수는 %d입니다.'%(temp+1, score[temp]))
 ```
 ![image](https://user-images.githubusercontent.com/78904413/234311589-45324fe3-8759-40d4-8b60-b8201f266856.png)
+
+> range 함수는 len함수를 통해 그 자료구조의 길이만큼 순회해야하고, 각 원소에 접근하기 위해서 인덱스로 접근해야 한다는 한계가 있습니다. 하지만 enumerate함수를 사용하면 이 두가지 문제를 해결할 수 있습니다.
+
+```python
+fruits = ['apple', 'grape', 'banana']
+for idx, fruit in enumerate(fruits):    # idx라는 지역변수가 사용 가능해짐
+    print('{}: {}'.format(idx + 1, fruit))
+
+for idx, fruit in enumerate(fruits, 2): # idx의 시작 숫자를 지정해 줄수 있음
+    print('{}: {}'.format(idx, fruit))
+```
+![image](https://user-images.githubusercontent.com/78904413/234317490-a3e5344f-4d59-41c6-bca9-ca6f498e17e5.png)
+
+
 
 #### 2.2.2. List comprehension
 리스트 안에 for문을 넣어서 표현하는 방식입니다.
