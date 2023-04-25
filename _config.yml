@@ -344,7 +344,7 @@ defaults:
       search: true
       use_math: true
       sidebar:
-        nav: "spring"
+        nav: "python"
       header:
         teaser: /assets/images/ogu/py-ogu.jpg
         overlay_image: /assets/images/ogu/py-ogu.jpg
