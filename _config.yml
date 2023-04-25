@@ -73,7 +73,7 @@ google:
 # SEO Related
 google_site_verification :
 bing_site_verification   :
-naver_site_verification  : "2450db340e40d478c29d158e0b82a6ef96f771fd"
+naver_site_verification  :
 yandex_site_verification :
 baidu_site_verification  :
 
@@ -94,9 +94,9 @@ social:
 
 # Analytics
 analytics:
-  provider               : "google-gtag" # false (default), "google", "google-universal", "google-gtag", "custom"
+  provider               : false # false (default), "google", "google-universal", "google-gtag", "custom"
   google:
-    tracking_id          : "G-SRPZ9P7ZYS"
+    tracking_id          :
     anonymize_ip         : false # true, false (default)
 
 
@@ -105,7 +105,7 @@ author:
   name             : "Lala"
   url              : "https://github.com/lala-ogu/about"
   avatar           : "/assets/images/lala/lala.jpg"
-  bio              : "in 1993 |java stack |love ogu "
+  bio              : "in 1993 | love ogu "
   location         : "Seoul"
   email            : #"gnsrudfk@naver.com"
   links:
@@ -322,6 +322,29 @@ defaults:
       use_math: true
       sidebar:
         nav: "python"
+      header:
+        teaser: /assets/images/ogu/py-ogu.jpg
+        overlay_image: /assets/images/ogu/py-ogu.jpg
+        overlay_filter: 0.4
+        caption: "일러스트: [**moonlab**](https://grafolio.naver.com/m009988)"
+        
+  # python-basic default
+  - scope:
+      path: "python/python-basic"
+    values:
+      layout: single
+      author_profile: false
+      read_time: true
+      show_date: true
+      comments: true
+      share: true
+      related: true
+      toc: true
+      toc_sticky: true
+      search: true
+      use_math: true
+      sidebar:
+        nav: "spring"
       header:
         teaser: /assets/images/ogu/py-ogu.jpg
         overlay_image: /assets/images/ogu/py-ogu.jpg
