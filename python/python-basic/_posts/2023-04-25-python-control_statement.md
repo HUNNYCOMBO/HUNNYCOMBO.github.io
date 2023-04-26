@@ -1,7 +1,7 @@
 ---
 title: '파이썬기초 - 제어문'
 excerpt: '프로그래밍의 기초가되는 if문, while문, for문에 대해 알아봅니다.'
-tags: [if문, 반복문]
+tags: [if문, 반복문, range]
 ---
 ## 참고한 블로그
 [안성주지몬의 티스토리](https://potensj.tistory.com/114)
@@ -172,9 +172,11 @@ for name, age in [('lala', 31),('경훈',31)]:
 > 반복문을 반복하면서 각각 name, age라는 변수에 인덱스 순으로 값을 대입합니다.
 
 #### 2.2.1. range 함수
-for문은 list를 주로 사용함으로 list를 생성할 경우가 많습니다. range는 list를 생성해주는 함수입니다.
+for문은 list를 주로 사용함으로 list를 생성할 경우가 많습니다. range는 일정 범위의 정수 시퀀스를 생성해주는 함수입니다.
 - range(n) : 0부터 n미만 list 생성
 - range(n,m) : n부터 m미만 list 생성
+
+**range() 함수는 이터레이터(iterator)로 작동하므로, 필요한 경우에만 값을 생성하고 나머지 경우에는 값을 생성하지 않습니다. 이는 불필요한 연산을 줄이고 실행 속도를 향상시킬 수 있습니다.**
 
 ```python
 score = [80,20,50,30,10]
