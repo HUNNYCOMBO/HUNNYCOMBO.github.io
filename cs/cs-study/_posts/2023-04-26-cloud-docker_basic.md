@@ -1,7 +1,7 @@
 ---
 title: '클라우드 컴퓨팅 서비스 모델'
 excerpt: 'laaS, PaaS, SaaS에 대해 알아보기'
-tags: []
+tags: [laaS, PaaS, SaaS]
 header:
   overlay: ![image](https://user-images.githubusercontent.com/78904413/234437723-ad612026-114f-48ad-a188-d8add234ce1b.png)
 
