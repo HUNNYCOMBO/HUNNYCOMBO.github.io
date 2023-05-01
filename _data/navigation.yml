@@ -36,6 +36,8 @@ python:
         url: /python/
       - title: "파이썬 기초"
         url: /python/python-basic/
+      - title: "데이터 분석"
+        url: /python/data-analysis/
 
 # js sidebar
 js:
