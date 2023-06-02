@@ -39,5 +39,7 @@ details 태그 안에는 markdown 작성을 못하므로, liquid 문법을 이�
 ```
 
 ## git-secret
-- [Ubuntu 설치](https://velog.io/@darktrace1/%EC%9C%88%EB%8F%84%EC%9A%B011%EC%97%90-UbuntuWSL2-%EC%84%A4%EC%B9%98%ED%95%98%EA%B8%B0)
+- [wsl Ubuntu 설치](https://velog.io/@darktrace1/%EC%9C%88%EB%8F%84%EC%9A%B011%EC%97%90-UbuntuWSL2-%EC%84%A4%EC%B9%98%ED%95%98%EA%B8%B0)
 - [wsl 에러](https://learn.microsoft.com/ko-kr/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package)
+- [git-secret](https://kimmj.github.io/git/git-secret/)
+- [wsl 명령어](https://velog.io/@donghak/wsl)
