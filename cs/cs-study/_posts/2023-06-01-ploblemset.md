@@ -1,6 +1,6 @@
 ---
 title: '코딩테스트 기초문제 풀이 모음(python)'
-exceprt: 'lv0 문제들을 풀이'
+excerpt: 'lv0 문제들을 풀이'
 tags: [코테,]
 ---
 
