@@ -10,7 +10,7 @@
 - 파일명 대문자는 허용하지 않음
 
 
-## 타이틀 작성법
+## frontmatter 작성법
 ```
 ---
 title: '제목'
@@ -38,6 +38,8 @@ details 태그 안에는 markdown 작성을 못하므로, liquid 문법을 이�
 
 </details>
 ```
+## fork한 저장소와 merge하기
+- [upstream](https://wikidocs.net/74836)
 
 ## git-secret
 - [wsl Ubuntu 설치](https://velog.io/@darktrace1/%EC%9C%88%EB%8F%84%EC%9A%B011%EC%97%90-UbuntuWSL2-%EC%84%A4%EC%B9%98%ED%95%98%EA%B8%B0)
