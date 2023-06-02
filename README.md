@@ -9,12 +9,13 @@
 - 태그는 웬만하면 한글로 적었음
 - 파일명 대문자는 허용하지 않음
 
-## 작성에 사용하는 front matter
-```html
+
+## 타이틀 작성법
+```
 ---
-title: 
-excerpt: 
-tags: []
+title: '제목'
+excerpt: '간략한 설명'
+tags: [태그,들을,넣는,곳]
 header:
   teaser: /assets/images/
   overlay_image: /assets/images/
