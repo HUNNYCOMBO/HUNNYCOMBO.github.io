@@ -43,3 +43,6 @@ details 태그 안에는 markdown 작성을 못하므로, liquid 문법을 이�
 - [wsl 에러](https://learn.microsoft.com/ko-kr/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package)
 - [git-secret](https://kimmj.github.io/git/git-secret/)
 - [wsl 명령어](https://velog.io/@donghak/wsl)
+
+## TIL 자동화
+- [TIL 자동화](https://seulog.netlify.app/etc/TILGitHubAction/)
