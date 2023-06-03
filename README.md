@@ -2,7 +2,9 @@
 
 ## [블로그 댓글 설정하기](https://ansohxxn.github.io/blog/utterances/)
 
-## [TIL 자동화](https://lys7aves.tistory.com/26?category=943283)
+## [TIL README 자동화](https://lys7aves.tistory.com/26?category=943283)
+
+## [TODO bot](https://velog.io/@software/github-todo-%EB%B4%87-%EC%82%AC%EC%9A%A9%ED%95%98%EA%B8%B0)
 
 ## 수정 참고 링크
 - [syh39](https://syh39.github.io/blog/github_blog_setting/)
