@@ -14,6 +14,7 @@ header:
   overlay_filter: 0.4
   caption: "Lala"
 ---
+<!-- @todo about.md를 lala-ogu 레파지토리로 옮길 고민 중-->
 
 ## :hatching_chick: About Lala
 ### :blush: 간략한 소개
