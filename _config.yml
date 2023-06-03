@@ -114,9 +114,6 @@ author:
     - label: "gnsrudfk@naver.com"
       icon: "fas fa-fw fa-envelope-square"
       url: "mailto:gnsrudfk@naver.com"
-    - label: "TODO"
-      icon: "fas fa-fw fa-list-ul"
-      url: "https://github.com/lala-ogu/TODO"
     - label: "TIL"
       icon: "fas fa-fw fa-calendar-check"
       url: "https://github.com/lala-ogu/TIL"
@@ -142,8 +139,6 @@ footer:
     - label: "Facebook"
       icon: "fab fa-fw fa-facebook-square"
       # url:
-    - label: "TODO"
-      icon: "fas fa-fw fa-list-ul"
       url: "https://github.com/lala-ogu/TODO"
     - label: "TIL"
       icon: "fas fa-fw fa-calendar-check"
