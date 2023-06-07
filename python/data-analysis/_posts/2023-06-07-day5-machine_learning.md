@@ -1,10 +1,7 @@
 ---
-layout: single
-title:  "jupyter notebook 변환하기!"
-categories: coding
-tag: [python, blog, jekyll]
-toc: true
-author_profile: false
+title:  "머신러닝 기초"
+excerpt: '머신러닝 용어와 데이터전처리, 더미데이터화에 대해 알아보기'
+tag: [ML, 데이터전처리, 더미데이터화]
 ---
 
 <head>
